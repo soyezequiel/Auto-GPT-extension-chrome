@@ -1,9 +1,103 @@
+console.log("content-script.js");
+
+
+chrome.runtime.onMessage.addListener(function(mensaje, sender, respuesta) {
+  if (mensaje.tipo === "informacion") {
+    const prompt = mensaje.datos.valor;
+    
+
+    // aquí puedes hacer lo que quieras con las variables "nombre" y "objetivo"
+    console.log("mensaje " + prompt);
+    console.log("respuesta" + enviarMensaje(prompt));
+  }
+});
+
+
+async function enviarMensaje(mensaje) {
+  // Obtener el cuadro de texto
+  const textarea = document.querySelector('textarea[placeholder="Send a message..."]');
+  if (textarea !== null) {
+    // Establecer el valor del cuadro de texto
+    textarea.value = mensaje;
+
+    // Crear un evento keydown para simular presionar la tecla Enter
+    const event = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      keyCode: 13,
+    });
+
+    // Desencadenar el evento keydown
+    textarea.dispatchEvent(event);
+
+    // Esperar a que puedoContinuar() devuelva true
+    await new Promise((resolve) => {
+      const checkContinuar = setInterval(() => {
+        if (puedoContinuar()) {
+          clearInterval(checkContinuar);
+          resolve();
+        }
+      }, 100);
+    });
+    console.log("llegue ");
+
+    const elementos = document.querySelectorAll('.prose');
+    const ultimoElemento = elementos[elementos.length - 1];
+    const texto = ultimoElemento.textContent.trim();
+    //console.log(texto);
+    console.log("llegue 2");
+
+    return texto;
+  } else {
+    console.log('El cuadro de texto no existe en la página.');
+  }
+}
 
 
 
+function puedoContinuar() {
+  if (document.querySelector('.text-2xl span:first-child') !== null) {
+    console.log("puedoContinuar dice " + false); // El elemento existe
+    return false;
+  } else {
+    console.log("puedoContinuar dice " +  true); // El elemento no existe
+    return true;
+  }
+}
 
 
   /*
+
+function enviarMensaje2(mensaje) {
+  // Obtener el cuadro de texto
+  const textarea = document.querySelector('textarea[placeholder="Send a message..."]');
+  if (textarea !== null) {
+    // Establecer el valor del cuadro de texto
+    textarea.value = mensaje;
+
+    // Crear un evento keydown para simular presionar la tecla Enter
+    const event = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      keyCode: 13,
+    });
+
+    // Desencadenar el evento keydown
+    textarea.dispatchEvent(event);
+
+  
+
+    const elementos = document.querySelectorAll('.prose');
+    const ultimoElemento = elementos[elementos.length - 1];
+    const texto = ultimoElemento.textContent.trim();
+    console.log(texto);
+
+    
+    return texto;
+  } else {
+    console.log('El cuadro de texto no existe en la página.');
+  }
+}
 
 chrome.runtime.onMessage.addListener(function(mensaje, sender, respuesta) {
     if (mensaje.tipo === "informacion") {
