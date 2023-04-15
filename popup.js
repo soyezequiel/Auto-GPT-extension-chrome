@@ -19,14 +19,6 @@ async function cuerpo(query1, query2) {
   var respuesta = await enviarMensajeMedianteContent(query1);
   var respuesta2 = await enviarMensajeMedianteContent(query2);
 
-  // Guardar los valores en la base de datos
-  await guardarEnBaseDeDatos(query1, respuesta);
-  await guardarEnBaseDeDatos(query2, respuesta2);
-    // Guardar los valores en la base de datos
- //   guardarEnBaseDeDatos(query1, respuesta);
-   // guardarEnBaseDeDatos(query2, respuesta2);
-
- // imprimirInformacionBaseDeDatos();
 }
 
 
