@@ -4,24 +4,15 @@ console.log("content-script.js");
 chrome.runtime.onMessage.addListener(function(mensaje, sender, respuesta) {
   if (mensaje.tipo === "informacion") {
     const prompt = mensaje.datos.valor;
-    
-
-    principal(prompt);
-
+  
+    var respuesta =  enviarMensaje(prompt);
   }
 });
-
-async function principal(prompt){
-
-  console.log("mensaje " + prompt);
-  var respuesta = await enviarMensaje(prompt);
-  console.log("respuesta" + respuesta );
-}
-
 
 
 
 async function enviarMensaje(mensaje) {
+  console.log("mensaje " + mensaje);
   // Obtener el cuadro de texto
   const textarea = document.querySelector('textarea[placeholder="Send a message..."]');
   if (textarea !== null) {
@@ -54,13 +45,18 @@ async function enviarMensaje(mensaje) {
     const texto = ultimoElemento.textContent.trim();
     //console.log(texto);
     console.log("llegue 2");
-
+    console.log("respuesta:  " + respuesta );
+    // Enviar mensaje a popup.js
+    var respuesta= texto;
+chrome.runtime.sendMessage({tipo: "respuesta", datos: {valor: respuesta}});
     return texto;
   } else {
     console.log('El cuadro de texto no existe en la página.');
   }
 }
 
+
+//funciones privadas
 
 
 function puedoContinuar() {
