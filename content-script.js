@@ -6,11 +6,19 @@ chrome.runtime.onMessage.addListener(function(mensaje, sender, respuesta) {
     const prompt = mensaje.datos.valor;
     
 
-    // aquí puedes hacer lo que quieras con las variables "nombre" y "objetivo"
-    console.log("mensaje " + prompt);
-    console.log("respuesta" + enviarMensaje(prompt));
+    principal(prompt);
+
   }
 });
+
+async function principal(prompt){
+
+  console.log("mensaje " + prompt);
+  var respuesta = await enviarMensaje(prompt);
+  console.log("respuesta" + respuesta );
+}
+
+
 
 
 async function enviarMensaje(mensaje) {
