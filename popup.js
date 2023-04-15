@@ -13,13 +13,111 @@ form.addEventListener('submit', async (event) => {
 
 });
 
- async function cuerpo(query1, query2) {
 
+
+async function cuerpo(query1, query2) {
   var respuesta = await enviarMensajeMedianteContent(query1);
+  var respuesta2 = await enviarMensajeMedianteContent(query2);
 
-  var respuesta2 = await  enviarMensajeMedianteContent(query2);
+  // Guardar los valores en la base de datos
+  await guardarEnBaseDeDatos(query1, respuesta);
+  await guardarEnBaseDeDatos(query2, respuesta2);
+    // Guardar los valores en la base de datos
+ //   guardarEnBaseDeDatos(query1, respuesta);
+   // guardarEnBaseDeDatos(query2, respuesta2);
 
+ // imprimirInformacionBaseDeDatos();
 }
+
+
+ async function guardarEnBaseDeDatos(query, respuesta) {
+  // Abrir una conexión con la base de datos
+  const db = await obtenerConexionBaseDeDatos();
+
+  // Iniciar una transacción
+  const transaction = db.transaction('consultas', 'readwrite');
+
+  // Obtener el objeto de almacén de datos (object store) 'consultas' de la transacción
+  const consultasStore = transaction.objectStore('consultas');
+
+  // Crear un nuevo registro con la consulta y la respuesta
+  const nuevoRegistro = { query: query, respuesta: respuesta };
+  await consultasStore.add(nuevoRegistro);
+
+  // Completar la transacción
+  await transaction.complete;
+
+  console.log(`Consulta '${query}' y respuesta '${respuesta}' guardadas en la base de datos.`);
+}
+
+function obtenerConexionBaseDeDatos() {
+  // Abrir una conexión con la base de datos utilizando la API de IndexedDB
+  return new Promise((resolve, reject) => {
+    const request = window.indexedDB.open('miBasedeDatos', 1);
+
+    request.onerror = (event) => {
+      console.error('Error al abrir la base de datos:', event.target.error);
+      reject(event.target.error);
+    };
+
+    request.onsuccess = (event) => {
+      const db = event.target.result;
+      resolve(db);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+
+      // Crear un objeto de almacén de datos (object store) llamado 'consultas'
+      const consultasStore = db.createObjectStore('consultas', { keyPath: 'query' });
+
+      console.log('Base de datos creada correctamente.');
+    };
+  });
+}
+
+
+
+
+async function imprimirInformacionBaseDeDatos() {
+  try {
+    // Obtener conexión a la base de datos
+    const db = await obtenerConexionBaseDeDatos();
+
+    // Iniciar una transacción de lectura en el objeto de almacén de datos 'consultas'
+    const transaction = db.transaction('consultas', 'readonly');
+    const consultasStore = transaction.objectStore('consultas');
+
+    // Obtener todos los registros del objeto de almacén de datos
+    const request = consultasStore.getAll();
+
+    request.onerror = (event) => {
+      console.error('Error al obtener los registros:', event.target.error);
+    };
+
+    request.onsuccess = (event) => {
+      const registros = event.target.result;
+      if (Array.isArray(registros)) {
+        // Iterar sobre los registros e imprimir la información en la consola
+        registros.forEach((registro) => {
+          console.log(`Consulta: ${registro.query}, Respuesta: ${registro.respuesta}`);
+        });
+      }
+    };
+  } catch (error) {
+    console.error('Error al imprimir la información de la base de datos:', error);
+  }
+}
+
+
+
+
+
+
+
+
+
+
 
 function enviarMensajeMedianteContent(query) {
   return new Promise(async (resolve) => {
@@ -53,8 +151,6 @@ function enviarMensajeMedianteContent(query) {
     });
   });
 }
-
-
 
 
 

@@ -5,9 +5,18 @@ chrome.runtime.onMessage.addListener(function(mensaje, sender, respuesta) {
   if (mensaje.tipo === "informacion") {
     const prompt = mensaje.datos.valor;
   
-    var respuesta =  enviarMensaje(prompt);
+    principal(prompt)
   }
 });
+
+async function principal(prompt){
+  var respuesta = await enviarMensaje(prompt);
+
+  // Guardar los valores en la base de datos
+  guardarEnBaseDeDatos(prompt, respuesta);
+    imprimirInformacionBaseDeDatos();
+}
+
 
 
 
@@ -46,17 +55,45 @@ async function enviarMensaje(mensaje) {
     // Enviar mensaje a popup.js
     var respuesta= texto;
 chrome.runtime.sendMessage({tipo: "respuesta", datos: {valor: respuesta}});
-  console.log("respuesta:  " + respuesta );
+ // console.log("respuesta:  " + respuesta );
     return texto;
   } else {
     console.log('El cuadro de texto no existe en la página.');
   }
 }
 
-
 //funciones privadas
 
 
+async function imprimirInformacionBaseDeDatos() {
+  try {
+    // Obtener conexión a la base de datos
+    const db = await obtenerConexionBaseDeDatos();
+
+    // Iniciar una transacción de lectura en el objeto de almacén de datos 'consultas'
+    const transaction = db.transaction('consultas', 'readonly');
+    const consultasStore = transaction.objectStore('consultas');
+
+    // Obtener todos los registros del objeto de almacén de datos
+    const request = consultasStore.getAll();
+
+    request.onerror = (event) => {
+      console.error('Error al obtener los registros:', event.target.error);
+    };
+
+    request.onsuccess = (event) => {
+      const registros = event.target.result;
+      if (Array.isArray(registros)) {
+        // Iterar sobre los registros e imprimir la información en la consola
+        registros.forEach((registro) => {
+          console.log(`Consulta: ${registro.query}, Respuesta: ${registro.respuesta}`);
+        });
+      }
+    };
+  } catch (error) {
+    console.error('Error al imprimir la información de la base de datos:', error);
+  }
+}
 function puedoContinuar() {
   if (document.querySelector('.text-2xl span:first-child') !== null) {
     console.log("espera"); // El elemento existe
@@ -66,6 +103,59 @@ function puedoContinuar() {
     return true;
   }
 }
+
+
+async function guardarEnBaseDeDatos(query, respuesta) {
+  // Abrir una conexión con la base de datos
+  const db = await obtenerConexionBaseDeDatos();
+
+  // Iniciar una transacción
+  const transaction = db.transaction('consultas', 'readwrite');
+
+  // Obtener el objeto de almacén de datos (object store) 'consultas' de la transacción
+  const consultasStore = transaction.objectStore('consultas');
+
+  // Crear un nuevo registro con la consulta y la respuesta
+  const nuevoRegistro = { query: query, respuesta: respuesta };
+  await consultasStore.add(nuevoRegistro);
+
+  // Completar la transacción
+  await transaction.complete;
+
+  console.log(`Consulta '${query}' y respuesta '${respuesta}' guardadas en la base de datos.`);
+}
+
+function obtenerConexionBaseDeDatos() {
+  // Abrir una conexión con la base de datos utilizando la API de IndexedDB
+  return new Promise((resolve, reject) => {
+    const request = window.indexedDB.open('miBasedeDatos', 1);
+
+    request.onerror = (event) => {
+      console.error('Error al abrir la base de datos:', event.target.error);
+      reject(event.target.error);
+    };
+
+    request.onsuccess = (event) => {
+      const db = event.target.result;
+      resolve(db);
+    };
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+
+      // Crear un objeto de almacén de datos (object store) llamado 'consultas'
+      const consultasStore = db.createObjectStore('consultas', { keyPath: 'query' });
+
+      console.log('Base de datos creada correctamente.');
+    };
+  });
+}
+
+
+
+
+
+
 
 
   /*
