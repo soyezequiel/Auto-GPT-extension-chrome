@@ -1,0 +1,31 @@
+{    
+    "name": "nombre de mi extension copada",
+    "version": "1.0.1",
+    "description": "una explicacion de mi extension",
+    "manifest_version": 3,
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "images/1.png",
+            "32": "images/2.png",
+            "48": "images/3.png",
+            "128": "images/4.png"
+          }
+
+      },
+      "icons":{
+        "16": "images/1.png",
+        "32": "images/2.png",
+        "48": "images/3.png",
+        "128": "images/4.png"
+      },
+
+      "content_scripts": [
+        {
+          "matches": ["https://chat.openai.com/*"],
+
+          "js": ["content-script.js"]
+        }
+      ]
+      
+  }
