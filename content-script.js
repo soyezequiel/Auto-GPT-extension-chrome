@@ -38,17 +38,15 @@ async function enviarMensaje(mensaje) {
         }
       }, 100);
     });
-    console.log("llegue ");
 
     const elementos = document.querySelectorAll('.prose');
     const ultimoElemento = elementos[elementos.length - 1];
     const texto = ultimoElemento.textContent.trim();
     //console.log(texto);
-    console.log("llegue 2");
-    console.log("respuesta:  " + respuesta );
     // Enviar mensaje a popup.js
     var respuesta= texto;
 chrome.runtime.sendMessage({tipo: "respuesta", datos: {valor: respuesta}});
+  console.log("respuesta:  " + respuesta );
     return texto;
   } else {
     console.log('El cuadro de texto no existe en la página.');
@@ -61,10 +59,10 @@ chrome.runtime.sendMessage({tipo: "respuesta", datos: {valor: respuesta}});
 
 function puedoContinuar() {
   if (document.querySelector('.text-2xl span:first-child') !== null) {
-    console.log("puedoContinuar dice " + false); // El elemento existe
+    console.log("espera"); // El elemento existe
     return false;
   } else {
-    console.log("puedoContinuar dice " +  true); // El elemento no existe
+    //console.log("puedoContinuar dice " +  true); // El elemento no existe
     return true;
   }
 }
