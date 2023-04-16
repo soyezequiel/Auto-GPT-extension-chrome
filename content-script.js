@@ -1,20 +1,33 @@
 console.log("content-script.js");
 
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === 'imprimir_base_datos') {
+      // Realiza la acción para imprimir la base de datos aquí
+      console.log('Imprimir base de datos');
+      // Puedes acceder y manipular la base de datos aquí si es posible
+      // teniendo en cuenta las restricciones de seguridad del contenido de script
+      imprimirInformacionBaseDeDatos();
+  }
+});
+
+
 
 chrome.runtime.onMessage.addListener(function(mensaje, sender, respuesta) {
   if (mensaje.tipo === "informacion") {
     const prompt = mensaje.datos.valor;
+    const tipoInfo = mensaje.datos.tipo; // Obtener el valor del nuevo dato "tipo"
   
-    principal(prompt)
+    // Llamar a la función principal con los datos recibidos
+    principal(prompt, tipoInfo);
   }
 });
 
-async function principal(prompt){
+async function principal(prompt,tipoInfo){
   var respuesta = await enviarMensaje(prompt);
 
   // Guardar los valores en la base de datos
-  guardarEnBaseDeDatos(prompt, respuesta);
-    imprimirInformacionBaseDeDatos();
+  guardarEnBaseDeDatos(tipoInfo,prompt, respuesta);
+  //  imprimirInformacionBaseDeDatos();
 }
 
 
@@ -105,7 +118,7 @@ function puedoContinuar() {
 }
 
 
-async function guardarEnBaseDeDatos(query, respuesta) {
+async function guardarEnBaseDeDatos(query, respuesta, tipoInfo = 'espe') {
   // Abrir una conexión con la base de datos
   const db = await obtenerConexionBaseDeDatos();
 
@@ -115,15 +128,16 @@ async function guardarEnBaseDeDatos(query, respuesta) {
   // Obtener el objeto de almacén de datos (object store) 'consultas' de la transacción
   const consultasStore = transaction.objectStore('consultas');
 
-  // Crear un nuevo registro con la consulta y la respuesta
-  const nuevoRegistro = { query: query, respuesta: respuesta };
+  // Crear un nuevo registro con el tipo de información, consulta y respuesta
+  const nuevoRegistro = { tipoInfo: tipoInfo, query: query, respuesta: respuesta };
   await consultasStore.add(nuevoRegistro);
 
   // Completar la transacción
   await transaction.complete;
 
-  console.log(`Consulta '${query}' y respuesta '${respuesta}' guardadas en la base de datos.`);
+  console.log(`Consulta '${query}' y respuesta '${respuesta}' guardadas en la base de datos con tipo de información '${tipoInfo}'.`);
 }
+
 
 function obtenerConexionBaseDeDatos() {
   // Abrir una conexión con la base de datos utilizando la API de IndexedDB
