@@ -29,13 +29,13 @@ async function principal(mensajeAenviar) {
 
 
 
-  
+
 }
 
 
 function enviarTexto(texto) {
   if (chrome.runtime && chrome.runtime.sendMessage) {
-    chrome.runtime.sendMessage({texto: texto}, function(response) {
+    chrome.runtime.sendMessage({ texto: texto }, function (response) {
       console.log('Texto enviado a popup.js');
     });
   }
@@ -56,37 +56,93 @@ async function agenteCreacionDeTareas(nombre, objetivo) {
   //console.log("Tarea agregada 1: " + tareasArreglo[0]);
   //console.log("Tarea agregada 2:" + tareasArreglo[1]);
   //console.log("Tarea agregada 3: " + tareasArreglo[2]);
-  
-  //guarda en memoria
-  guardarTarea("objetivo", objetivo, nombre);
-
-  //guarda en la cola de tareas
-  guardarTareaSinSolucion(" no deberia de haber titulo " , tareasArreglo[0]);
-  guardarTareaSinSolucion(" no deberia de haber titulo " , tareasArreglo[1]);
-  guardarTareaSinSolucion(" no deberia de haber titulo " , tareasArreglo[2]);
-
 
  
+
+
+
+
   console.log("objetivo: " + objetivo);
   console.log("nombre: " + nombre);
 
-    // imprimir tareas sin solucion
-// Llamada a la función para obtener las tareas y luego imprimirlas
-obtenerTareasSinSolucion().then(tareas => {
-  console.log('Tareas sin solución:');
-  console.log(tareas);
-}).catch(error => {
-  console.log(error);
-});
 
-    //imprimir tareas soluciones
-     obtenerTareas(function (tareas) {
-     console.log(tareas);
-   });
-    
-  return tareasArreglo;
+  GuardarEnMemoria(objetivo,nombre)
+
+  pilaDeTareas(tareasArreglo,false);
+  
+  //return tareasArreglo;
 
 }
+
+function GuardarEnMemoria(objetivo,nombre){
+   //guarda en memoria
+   guardarTarea("objetivo", objetivo, nombre);
+     //imprimir tareas soluciones
+  obtenerTareas(function (tareas) {
+    console.log(tareas);
+  });
+}
+
+function pilaDeTareas(tareasArreglo, ordenado) {
+
+  //guarda en la cola de tareas
+  for (let i = 0; i < tareasArreglo.length; i++) {
+    guardarTareaSinSolucion(" no deberia de haber titulo ", tareasArreglo[i]);
+  }
+  // imprimir tareas sin solucion
+  // Llamada a la función para obtener las tareas y luego imprimirlas
+  obtenerTareasSinSolucion().then(tareas => {
+    console.log('Tareas sin solución:');
+    console.log(tareas);
+  }).catch(error => {
+    console.log(error);
+  });
+
+
+
+  if (ordenado) {
+
+
+  }else{
+    agentePriorizacionDeTareas();
+
+  }
+
+  
+
+}
+
+async function agentePriorizacionDeTareas() {
+
+let cadena= await obtenerTodasLasTareas()
+ 
+let mensaje = await "prioriza las tareas teniendo en cuenta su prioridad y su correlatividad. sin agregar texto extra, solo agrega zzz antes y despues de cada tarea" + cadena;
+
+var respuesta = await enviarMensaje(mensaje);
+const tareasArreglo = await respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
+console.log(tareasArreglo);
+borrarBaseDeDatos2();
+pilaDeTareas(tareasArreglo, true);
+
+
+}
+
+
+function obtenerTodasLasTareas() {
+  return new Promise((resolve, reject) => {
+    obtenerTareasSinSolucion().then(tareas => {
+      let cadena = "";
+      tareas.forEach(tarea => {
+        cadena += tarea.tarea + "\n";
+      });
+      resolve(cadena);
+    }).catch(error => {
+      reject(error);
+    });
+  });
+}
+
+
 
 
 
@@ -184,10 +240,10 @@ function borrarBaseDeDatos() {
 
 
 //base de datos de tarea
- const request2 = indexedDB.open('miBaseDeDatos2');
+const request2 = indexedDB.open('miBaseDeDatos2');
 request2.onupgradeneeded = function (event) {
   const db = event.target.result;
-  
+
   // Crea el esquema de la base de datos existente
   const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement: true });
   objectStore.createIndex('titulo', 'titulo', { unique: false });
@@ -235,17 +291,17 @@ function obtenerTareasSinSolucion() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('miBaseDeDatos2');
 
-    request.onerror = function(event) {
+    request.onerror = function (event) {
       reject('Error al abrir la base de datos');
     };
 
-    request.onsuccess = function(event) {
+    request.onsuccess = function (event) {
       const db = event.target.result;
       const transaction = db.transaction(['tareasSinSoluciones'], 'readonly');
       const objectStore = transaction.objectStore('tareasSinSoluciones');
       const tareas = [];
 
-      objectStore.openCursor().onsuccess = function(event) {
+      objectStore.openCursor().onsuccess = function (event) {
         const cursor = event.target.result;
 
         if (cursor) {
@@ -257,7 +313,7 @@ function obtenerTareasSinSolucion() {
         }
       };
 
-      transaction.onerror = function() {
+      transaction.onerror = function () {
         reject('Error al leer la base de datos');
       };
     };
@@ -434,7 +490,7 @@ function puedoContinuar() {
   }
 }
 async function enviarMensaje(mensaje) {
- // console.log("mensaje " + mensaje);
+  // console.log("mensaje " + mensaje);
   // Obtener el cuadro de texto
   const textarea = document.querySelector('textarea[placeholder="Send a message..."]');
   if (textarea !== null) {
