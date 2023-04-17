@@ -22,7 +22,7 @@ async function principal(mensajeAenviar) {
   // aqui se enviara al agente de creacion de tareas el nombre y el objetivo para
 
   let texto = "Nombre: " + nombre + '\n' + "Objetivo: " + objetivo;
-  enviarTexto(texto);
+  enviarTexto(texto,"blue");
   let tareas = await agenteCreacionDeTareas(nombre, objetivo); //aqui recibe un array de string que contienen las tareas creadas por el agente
 
   console.log("ezequiel");
@@ -33,13 +33,21 @@ async function principal(mensajeAenviar) {
 }
 
 
-function enviarTexto(texto) {
+
+
+function enviarTexto(texto,color) {
+
   if (chrome.runtime && chrome.runtime.sendMessage) {
-    chrome.runtime.sendMessage({ texto: texto }, function (response) {
+    var mensaje = {
+      texto: texto,
+      color: color // Agregamos el color al objeto de mensaje
+    };
+    chrome.runtime.sendMessage(mensaje, function (response) {
       console.log('Texto enviado a popup.js');
     });
   }
 }
+
 
 
 
@@ -49,24 +57,21 @@ async function agenteCreacionDeTareas(nombre, objetivo) {
   var respuesta = await enviarMensaje(mensaje);
   const tareasArreglo = respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
   console.log("llegue");
+  /*
   enviarTexto("Tarea agregada 1: " + tareasArreglo[0]);
   enviarTexto("Tarea agregada 2:" + tareasArreglo[1]);
   enviarTexto("Tarea agregada 3: " + tareasArreglo[2]);
-
+  */
   //console.log("Tarea agregada 1: " + tareasArreglo[0]);
   //console.log("Tarea agregada 2:" + tareasArreglo[1]);
   //console.log("Tarea agregada 3: " + tareasArreglo[2]);
-
- 
-
-
 
 
   console.log("objetivo: " + objetivo);
   console.log("nombre: " + nombre);
 
 
-  GuardarEnMemoria(objetivo,nombre)
+  GuardarEnMemoria("objetivo",nombre,objetivo);
 
   pilaDeTareas(tareasArreglo,false);
   
@@ -74,9 +79,9 @@ async function agenteCreacionDeTareas(nombre, objetivo) {
 
 }
 
-function GuardarEnMemoria(objetivo,nombre){
+function GuardarEnMemoria(titulo,objetivo,nombre){
    //guarda en memoria
-   guardarTarea("objetivo", objetivo, nombre);
+   guardarTarea(titulo, objetivo, nombre);
      //imprimir tareas soluciones
   obtenerTareas(function (tareas) {
     console.log(tareas);
@@ -101,25 +106,180 @@ function pilaDeTareas(tareasArreglo, ordenado) {
 
 
   if (ordenado) {
-
-
+ //   for (let i = 0; i < tareasArreglo.length; i++) {
+   //   enviarTexto("Tarea agregada: " + tareasArreglo[i]);
+   // }
+    agenteDeEjecucion(tareasArreglo[0]);
   }else{
-    agentePriorizacionDeTareas();
+    for (let i = 0; i < tareasArreglo.length; i++) {
+      enviarTexto("Tarea agregada: " + tareasArreglo[i], "green");
+    }
+    agenteDeEjecucion(tareasArreglo[0]);    //este no deberia de estar aqui pero como no anda la priorizacion de tarea, estara aqui
+    //agentePriorizacionDeTareas();  lo dejo comentado porque me anda mal la priorizacion de tarea
 
   }
+}
+function obtenerTareasPromesa() {
+  return new Promise(function(resolve, reject) {
+    obtenerTareas(function(tareas) {
+      const titulosTareas = tareas.map(function(tarea) {
+        return tarea.titulo;
+      });
+      resolve(titulosTareas);
+    });
+  });
+}
 
+async function agenteDeEjecucion(tarea){
+
+
+
+    console.log("llegue aqui");
+    const titulosTareas = await obtenerTareasPromesa();
+    let titulosAbuscar = encontrarTitulosSimilares(titulosTareas, tarea);
+    console.log("Titulos a buscar : " + titulosAbuscar);
+    
+
+    let encontradas = [];
+    for (let i = 0; i < titulosAbuscar.length; i++) {
+      let tarea = await obtenerTareaPorTitulo(titulosAbuscar[i]);
+      encontradas.push(tarea);
+    }
+    let soluciones = "";
+    for (let i = 0; i < encontradas.length; i++) {
+      soluciones += encontradas[i].soluciones + "\n";
+    }
+    console.log("oroooooooooo " + soluciones);   
+    
+    let mensaje = "  " + tarea + " ejecuta la tarea , en caso de no tener información suficiente dime como conseguirla  información:   " + soluciones +  "";
+    var solucion = await enviarMensaje(mensaje);
+    enviarTexto("Ejecutando tarea: " + solucion, "orange");
+    
+    let mensaje2 = "  dame un titulo que resuma esto " + solucion;
+    var titulo = await enviarMensaje(mensaje2);
   
+    agenteCreacionDeTareas2(titulo,tarea,solucion,soluciones);
 
 }
 
+async function agenteCreacionDeTareas2(titulo,tarea,solucion,informacion) {
+
+  let mensaje = " "  + tarea +  " información:  " + informacion + " su ejecución  " + solucion + " en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo  La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso   ";
+  var respuesta = await enviarMensaje(mensaje);
+
+  // const tareasArreglo = respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
+  console.log("llegue");
+  /*
+  enviarTexto("Tarea agregada 1: " + tareasArreglo[0]);
+  enviarTexto("Tarea agregada 2:" + tareasArreglo[1]);
+  enviarTexto("Tarea agregada 3: " + tareasArreglo[2]);
+  */
+  //console.log("Tarea agregada 1: " + tareasArreglo[0]);
+  //console.log("Tarea agregada 2:" + tareasArreglo[1]);
+  //console.log("Tarea agregada 3: " + tareasArreglo[2]);
+
+
+  GuardarEnMemoria(titulo,tarea,solucion);
+  let tareasArreglo = [ respuesta ];
+
+  pilaDeTareas(tareasArreglo,false);
+  
+  //return tareasArreglo;
+
+}
+
+function obtenerTareaPorTitulo(titulo) {
+  return new Promise(function(resolve, reject) {
+    const request = indexedDB.open('miBaseDeDatos');
+    request.onsuccess = function(event) {
+      const db = event.target.result;
+      const transaction = db.transaction(['tareas'], 'readonly');
+      const objectStore = transaction.objectStore('tareas');
+      const index = objectStore.index('titulo');
+      const getRequest = index.get(titulo);
+      getRequest.onsuccess = function(event) {
+        const tarea = event.target.result;
+        if (tarea) {
+          resolve(tarea);
+        } else {
+          reject('No se encontró ninguna tarea con el título especificado');
+        }
+      };
+      getRequest.onerror = function(event) {
+        reject('Error al obtener la tarea');
+      };
+    };
+    request.onerror = function(event) {
+      reject('Error al abrir la base de datos');
+    };
+  });
+}
+
+
+
+
+
+
+
+
+
+function encontrarTitulosSimilares(indice, tarea) {
+  // Creamos un objeto para almacenar los puntajes de similitud de cada título
+  const similitud = {};
+
+  // Recorremos todos los títulos en el índice
+  indice.forEach(function(titulo) {
+    // Calculamos el puntaje de similitud entre el título y la tarea
+    const puntaje = calcularPuntajeSimilitud(titulo, tarea);
+
+    // Almacenamos el puntaje de similitud en el objeto
+    similitud[titulo] = puntaje;
+  });
+
+  // Ordenamos los títulos según su puntaje de similitud en orden descendente
+  const titulosOrdenados = Object.keys(similitud).sort(function(a, b) {
+    return similitud[b] - similitud[a];
+  });
+
+  // Devolvemos los 3 títulos con el puntaje de similitud más alto
+  return titulosOrdenados.slice(0, 3);
+}
+
+function calcularPuntajeSimilitud(cadena1, cadena2) {
+  // Convertimos ambas cadenas a minúsculas y eliminamos los caracteres no alfabéticos
+  const str1 = cadena1.toLowerCase().replace(/[^a-zA-Z]+/g, '');
+  const str2 = cadena2.toLowerCase().replace(/[^a-zA-Z]+/g, '');
+
+  // Calculamos el puntaje de similitud
+  const puntaje = new Set(str1.split('')).size + new Set(str2.split('')).size - new Set([...str1, ...str2]).size;
+
+  return puntaje;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 async function agentePriorizacionDeTareas() {
 
-let cadena= await obtenerTodasLasTareas()
+let cadena= await obtenerTodasLasTareasSinSolucion()
  
-let mensaje = await "prioriza las tareas teniendo en cuenta su prioridad y su correlatividad. sin agregar texto extra, solo agrega zzz antes y despues de cada tarea" + cadena;
+let mensaje = await "prioriza las tareas teniendo en cuenta su prioridad y su correlatividad. sin agregar texto extra, solo agrega zzz antes y despues de cada tarea:    " + cadena;
 
 var respuesta = await enviarMensaje(mensaje);
 const tareasArreglo = await respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
+
 console.log(tareasArreglo);
 borrarBaseDeDatos2();
 pilaDeTareas(tareasArreglo, true);
@@ -128,7 +288,7 @@ pilaDeTareas(tareasArreglo, true);
 }
 
 
-function obtenerTodasLasTareas() {
+function obtenerTodasLasTareasSinSolucion() {
   return new Promise((resolve, reject) => {
     obtenerTareasSinSolucion().then(tareas => {
       let cadena = "";
@@ -202,6 +362,14 @@ function obtenerTareas(callback) {
     };
   };
 }
+function obtenerTitulosDeTareas(callback) {
+  obtenerTareas(function(tareas) {
+    const titulos = tareas.map(function(tarea) {
+      return tarea.titulo;
+    });
+    callback(titulos);
+  });
+}
 
 function guardarTarea(titulo, tarea, soluciones) {
   const request = indexedDB.open('miBaseDeDatos');
@@ -236,6 +404,12 @@ function borrarBaseDeDatos() {
     };
   };
 }
+
+
+
+
+
+
 
 
 

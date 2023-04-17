@@ -11,14 +11,15 @@ form.addEventListener('submit', async (event) => {
 });
 
 
+
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  if (request.texto) {
+  if (request.texto && request.color) { // Verificamos si se recibió el texto y el color en el mensaje
     console.log('Texto recibido desde content_script.js:', request.texto);
-    mostrarTexto(request.texto);
+    console.log('Color recibido desde content_script.js:', request.color);
+    mostrarTexto(request.texto, request.color); // Pasamos el texto y el color a la función mostrarTexto
     sendResponse({confirmacion: 'Texto recibido correctamente'});
   }
 });
-
 
 
 
@@ -87,7 +88,7 @@ function mostrarTexto2(texto) {
 }
 
 
-function mostrarTexto(texto) {
+function mostrarTexto0(texto) {
   var chat = document.createElement("div"); // creamos un elemento <div> para el chat
   chat.classList.add("chat"); // agregamos la clase "chat" al elemento <div>
   var contenido = document.createTextNode(texto); // creamos un nodo de texto con el contenido recibido
@@ -95,6 +96,14 @@ function mostrarTexto(texto) {
   document.getElementById("respuesta").appendChild(chat); // agregamos el elemento <div> al elemento con id "respuesta"
 }
 
+function mostrarTexto(texto, color) {
+  var chat = document.createElement("div"); // creamos un elemento <div> para el chat
+  chat.classList.add("chat"); // agregamos la clase "chat" al elemento <div>
+  chat.style.backgroundColor = color; // establecemos el color de fondo del elemento <div> con el valor del parámetro "color"
+  var contenido = document.createTextNode(texto); // creamos un nodo de texto con el contenido recibido
+  chat.appendChild(contenido); // agregamos el nodo de texto al elemento <div>
+  document.getElementById("respuesta").appendChild(chat); // agregamos el elemento <div> al elemento con id "respuesta"
+}
 
 
 
