@@ -1,12 +1,23 @@
 console.log("content-script.js");
 
+
+
+// Escuchamos el mensaje enviado desde popup.js esto es para imprimir en consola
+chrome.runtime.onMessage.addListener(function (mensaje, sender, sendResponse) {
+  if (typeof mensaje.texto === "string") {
+    console.log(mensaje.texto); // Hola desde popup.js
+  } else {
+    console.error("El mensaje recibido no es una cadena de texto");
+  }
+});
+
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === 'imprimir_base_datos') {
       // Realiza la acción para imprimir la base de datos aquí
       console.log('Imprimir base de datos');
       // Puedes acceder y manipular la base de datos aquí si es posible
       // teniendo en cuenta las restricciones de seguridad del contenido de script
-      imprimirInformacionBaseDeDatos();
+     // imprimirInformacionBaseDeDatos();
   }
 });
 
@@ -14,19 +25,18 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 chrome.runtime.onMessage.addListener(function(mensaje, sender, respuesta) {
   if (mensaje.tipo === "informacion") {
-    const prompt = mensaje.datos.valor;
-    const tipoInfo = mensaje.datos.tipo; // Obtener el valor del nuevo dato "tipo"
+    const mensajeAenviar = mensaje.datos.valor;
   
     // Llamar a la función principal con los datos recibidos
-    principal(prompt, tipoInfo);
+    principal(mensajeAenviar);
   }
 });
 
-async function principal(prompt,tipoInfo){
-  var respuesta = await enviarMensaje(prompt);
+async function principal(mensajeAenviar){
+  var respuesta = await enviarMensaje(mensajeAenviar);
 
   // Guardar los valores en la base de datos
-  guardarEnBaseDeDatos(tipoInfo,prompt, respuesta);
+  guardarEnBaseDeDatos(mensajeAenviar, respuesta);  //esto despues lo voy a sacar, se guardara en la base de datos desde otra llamada dedicada a eso
   //  imprimirInformacionBaseDeDatos();
 }
 
@@ -135,7 +145,7 @@ async function guardarEnBaseDeDatos(query, respuesta, tipoInfo = 'espe') {
   // Completar la transacción
   await transaction.complete;
 
-  console.log(`Consulta '${query}' y respuesta '${respuesta}' guardadas en la base de datos con tipo de información '${tipoInfo}'.`);
+  // console.log(`Consulta '${query}' y respuesta '${respuesta}' guardadas en la base de datos con tipo de información '${tipoInfo}'.`);
 }
 
 
