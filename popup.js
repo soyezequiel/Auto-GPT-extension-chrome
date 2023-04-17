@@ -1,8 +1,3 @@
-
-
-
-
-
 console.log("popup.js");
 const form = document.querySelector('#formulario');
 
@@ -10,25 +5,31 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const nombre = document.querySelector('#nombre').value; // Obtener el valor del primer campo de consulta
   const objetivo = document.querySelector('#objetivo').value; // Obtener el valor del segundo campo de consulta
-  
-
-
 
   cuerpo(nombre, objetivo); // Pasar los valores obtenidos a la función "cuerpo" con el tipo seleccionado
 
 });
 
 
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.texto) {
+    console.log('Texto recibido desde content_script.js:', request.texto);
+    mostrarTexto(request.texto);
+    sendResponse({confirmacion: 'Texto recibido correctamente'});
+  }
+});
+
+
+
+
 async function cuerpo(nombre, objetivo) {
-
-
-
-  // aqui se enviara al agente de creacion de tareas el nombre y el objetivo para
-  let tareas = await agenteCreacionDeTareas(nombre,objetivo); //aqui recibe un array de string que contienen las tareas creadas por el agente
-
+  const miArreglo = [nombre, objetivo];
+  enviarMensajeMedianteContent(miArreglo);
 }
 
-function imprimirEnConsola(texto){
+
+
+function imprimirEnConsola(texto) {
   // Obtenemos el ID de la pestaña activa
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     const tabId = tabs[0].id;
@@ -44,65 +45,24 @@ function imprimirEnConsola(texto){
 }
 
 
-
-
-
-async function agenteCreacionDeTareas(nombre, objetivo) {
-
-  let mensaje="Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres " + nombre + " y el objetivo es " + objetivo + ".   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, quiero que la respuesta este en este formato y agrega zzz antes y despues de cada tarea ";
-  var respuesta = await enviarMensajeAGPT(mensaje);
-
-
-
-
-
-  const tareasArreglo = respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
-  
-
-  
-
-
-  imprimirEnConsola("llegue");
-  mostrarTexto("Tarea agregada 1: " + tareasArreglo[0]);
-  mostrarTexto("Tarea agregada 2:" + tareasArreglo[1]);
-  mostrarTexto("Tarea agregada 3: " + tareasArreglo[2]);
-
-//  guardarObjeto("objetivo principal", objetivo, nombre);
-
-
-//guardarTarea("objetivo principal", objetivo, nombre);
-
-// Llamar a la función para guardar una tarea
-
-
-// Llamar a la función para obtener todas las tareas
-
-  
-
-
-  return tareasArreglo;
-
-}
-
-
-
 function enviarMensajeAGPT(mensajeAenviar) {
   return new Promise(async (resolve) => {
     // Enviar la consulta al servidor y esperar la respuesta
-    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
-      await chrome.tabs.sendMessage(tabs[0].id, { 
+    chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
+      await chrome.tabs.sendMessage(tabs[0].id, {
         tipo: "informacion",
-        datos: {  valor: mensajeAenviar     }
+        datos: { valor: mensajeAenviar }
       });
 
+      /*
       // Escuchar mensajes desde content-script.js
       chrome.runtime.onMessage.addListener(function handler(mensaje, sender, respuesta) {
         if (mensaje.tipo === "respuesta") {
           const respuestaValor = mensaje.datos.valor;
-  
+
           // Haz lo que necesites con la respuesta en popup.js
 
-          mostrarTexto(respuestaValor);
+          
 
           // Resolver la promesa para indicar que la función ha terminado de ejecutarse
           resolve(respuestaValor);
@@ -110,17 +70,16 @@ function enviarMensajeAGPT(mensajeAenviar) {
           // Remover el listener después de recibir la respuesta
           chrome.runtime.onMessage.removeListener(handler);
         }
-      });
+      }); */
     });
   });
 }
-
 function mostrarTexto2(texto) {
   document.getElementById("respuesta").innerHTML = texto;
 }
 
 
-function mostrarTexto(texto) {
+function mostrarTexto2(texto) {
   var p = document.createElement("p"); // creamos un elemento <p>
   var contenido = document.createTextNode(texto); // creamos un nodo de texto con el contenido recibido
   p.appendChild(contenido); // agregamos el nodo de texto al elemento <p>
@@ -128,6 +87,13 @@ function mostrarTexto(texto) {
 }
 
 
+function mostrarTexto(texto) {
+  var chat = document.createElement("div"); // creamos un elemento <div> para el chat
+  chat.classList.add("chat"); // agregamos la clase "chat" al elemento <div>
+  var contenido = document.createTextNode(texto); // creamos un nodo de texto con el contenido recibido
+  chat.appendChild(contenido); // agregamos el nodo de texto al elemento <div>
+  document.getElementById("respuesta").appendChild(chat); // agregamos el elemento <div> al elemento con id "respuesta"
+}
 
 
 
@@ -150,15 +116,15 @@ document.getElementById('btnImprimir').addEventListener('click', function() {
 function enviarMensajeMedianteContent(query, tipoInfo) {
   return new Promise(async (resolve) => {
     // Enviar la consulta al servidor y esperar la respuesta
-    chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
-      await chrome.tabs.sendMessage(tabs[0].id, { 
+    chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
+      await chrome.tabs.sendMessage(tabs[0].id, {
         tipo: "informacion",
-        datos: { 
+        datos: {
           valor: query,
           tipo: tipoInfo // Aquí puedes establecer el valor del dato "tipo" que deseas enviar
         }
       });
-
+/*
       // Escuchar mensajes desde content-script.js
       chrome.runtime.onMessage.addListener(function handler(mensaje, sender, respuesta) {
         if (mensaje.tipo === "respuesta") {
@@ -178,7 +144,7 @@ function enviarMensajeMedianteContent(query, tipoInfo) {
           // Remover el listener después de recibir la respuesta
           chrome.runtime.onMessage.removeListener(handler);
         }
-      });
+      }); */
     });
   });
 }
