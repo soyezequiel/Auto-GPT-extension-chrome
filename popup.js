@@ -1,3 +1,8 @@
+
+
+
+
+
 console.log("popup.js");
 const form = document.querySelector('#formulario');
 
@@ -41,6 +46,7 @@ function imprimirEnConsola(texto){
 
 
 
+
 async function agenteCreacionDeTareas(nombre, objetivo) {
 
   let mensaje="Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres " + nombre + " y el objetivo es " + objetivo + ".   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, quiero que la respuesta este en este formato y agrega zzz antes y despues de cada tarea ";
@@ -51,13 +57,27 @@ async function agenteCreacionDeTareas(nombre, objetivo) {
 
 
   const tareasArreglo = respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
+  
 
+  
 
 
   imprimirEnConsola("llegue");
   mostrarTexto("Tarea agregada 1: " + tareasArreglo[0]);
   mostrarTexto("Tarea agregada 2:" + tareasArreglo[1]);
   mostrarTexto("Tarea agregada 3: " + tareasArreglo[2]);
+
+//  guardarObjeto("objetivo principal", objetivo, nombre);
+
+
+//guardarTarea("objetivo principal", objetivo, nombre);
+
+// Llamar a la función para guardar una tarea
+
+
+// Llamar a la función para obtener todas las tareas
+
+  
 
 
   return tareasArreglo;
@@ -106,6 +126,15 @@ function mostrarTexto(texto) {
   p.appendChild(contenido); // agregamos el nodo de texto al elemento <p>
   document.getElementById("respuesta").appendChild(p); // agregamos el elemento <p> al elemento con id "respuesta"
 }
+
+
+
+
+
+
+
+
+
 
 
 /*
@@ -225,6 +254,5 @@ function enviarMensajeMedianteContent(query, tipoInfo) {
     });
   });
 }
-
 
 */

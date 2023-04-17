@@ -7,7 +7,7 @@ chrome.runtime.onMessage.addListener(function (mensaje, sender, sendResponse) {
   if (typeof mensaje.texto === "string") {
     console.log(mensaje.texto); // Hola desde popup.js
   } else {
-    console.error("El mensaje recibido no es una cadena de texto");
+   // console.error("El mensaje recibido no es una cadena de texto");
   }
 });
 
@@ -28,6 +28,10 @@ chrome.runtime.onMessage.addListener(function(mensaje, sender, respuesta) {
     const mensajeAenviar = mensaje.datos.valor;
   
     // Llamar a la función principal con los datos recibidos
+    guardarTarea('Hacer la compra', 'Leche, pan, huevos', 'Comprar en el supermercado');
+    obtenerTareas(function(tareas) {
+      console.log(tareas);
+    });
     principal(mensajeAenviar);
   }
 });
@@ -36,7 +40,7 @@ async function principal(mensajeAenviar){
   var respuesta = await enviarMensaje(mensajeAenviar);
 
   // Guardar los valores en la base de datos
-  guardarEnBaseDeDatos(mensajeAenviar, respuesta);  //esto despues lo voy a sacar, se guardara en la base de datos desde otra llamada dedicada a eso
+ // guardarEnBaseDeDatos(mensajeAenviar, respuesta);  //esto despues lo voy a sacar, se guardara en la base de datos desde otra llamada dedicada a eso
   //  imprimirInformacionBaseDeDatos();
 }
 
@@ -88,6 +92,101 @@ chrome.runtime.sendMessage({tipo: "respuesta", datos: {valor: respuesta}});
 //funciones privadas
 
 
+
+function puedoContinuar() {
+  if (document.querySelector('.text-2xl span:first-child') !== null) {
+    console.log("espera"); // El elemento existe
+    return false;
+  } else {
+    //console.log("puedoContinuar dice " +  true); // El elemento no existe
+    return true;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+// Abrir la base de datos
+const request = indexedDB.open('miBaseDeDatos');
+
+// Crear el esquema de la base de datos
+request.onupgradeneeded = function(event) {
+  const db = event.target.result;
+  const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement:true });
+  objectStore.createIndex('titulo', 'titulo', { unique: false });
+  objectStore.createIndex('soluciones', 'soluciones', { unique: false });
+};
+function guardarTarea(titulo, tarea, soluciones) {
+  const request = indexedDB.open('miBaseDeDatos');
+  request.onsuccess = function(event) {
+    const db = event.target.result;
+    const transaction = db.transaction(['tareas'], 'readwrite');
+    const objectStore = transaction.objectStore('tareas');
+    const nuevaTarea = {titulo: titulo, tarea: tarea, soluciones: soluciones};
+    objectStore.add(nuevaTarea);
+    transaction.oncomplete = function() {
+      console.log('Tarea guardada con éxito');
+    };
+    transaction.onerror = function() {
+      console.log('Error al guardar la tarea');
+    };
+  };
+}
+function obtenerTareas(callback) {
+  const request = indexedDB.open('miBaseDeDatos');
+  request.onsuccess = function(event) {
+    const db = event.target.result;
+    const transaction = db.transaction(['tareas'], 'readonly');
+    const objectStore = transaction.objectStore('tareas');
+    const cursor = objectStore.openCursor();
+    const tareas = [];
+    cursor.onsuccess = function(event) {
+      const cursor = event.target.result;
+      if (cursor) {
+        tareas.push(cursor.value);
+        cursor.continue();
+      } else {
+        callback(tareas);
+      }
+    };
+  };
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 async function imprimirInformacionBaseDeDatos() {
   try {
     // Obtener conexión a la base de datos
@@ -115,15 +214,6 @@ async function imprimirInformacionBaseDeDatos() {
     };
   } catch (error) {
     console.error('Error al imprimir la información de la base de datos:', error);
-  }
-}
-function puedoContinuar() {
-  if (document.querySelector('.text-2xl span:first-child') !== null) {
-    console.log("espera"); // El elemento existe
-    return false;
-  } else {
-    //console.log("puedoContinuar dice " +  true); // El elemento no existe
-    return true;
   }
 }
 
@@ -175,7 +265,7 @@ function obtenerConexionBaseDeDatos() {
   });
 }
 
-
+*/
 
 
 
