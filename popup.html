@@ -94,7 +94,7 @@
       margin-bottom: 10px;
       display: inline-block;
     }
-        #btnImprimir {
+        #btnImprimir, #detener {
       padding: 5px 10px;
       border-radius: 5px;
       border: none;
@@ -105,8 +105,9 @@
       cursor: pointer;
       transition: background-color 0.2s ease-in-out;
     }
+    
 
-    #btnImprimir:hover {
+    #btnImprimir:hover , #detener:hover {
       background-color: #2980b9;
     }
 
@@ -120,12 +121,13 @@
     <label for="objetivo">Quiero:</label>
     <input type="text" id="objetivo" name="objetivo" required><br><br>
     <button id="trabajar">Trabajar</button>
+   
   </form>
 
 
   <div id="respuesta">Resultados</div>   
   <button id="btnImprimir">Imprimir</button>
-
+ <button id="detener">detener</button>
   <script src="popup.js"></script>
 </body>
 </html>
