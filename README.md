@@ -1,7 +1,10 @@
 # Auto-GPT-extension-chrome
 
 
-Actualmente el complemento presenta errores debido a no poder controlar bien las respuestas de ChatGPT, por lo que en la mayoría de los casos, no se logra resolver la meta.
+Para su correcto funcionamiento debes de tener la pagina de chatGPT en primer plano con la ventana de la extension de chrome a la vista y tener estos 3 chat creados, con estos nombres en especifico
+
+![image](https://user-images.githubusercontent.com/32722140/232927241-8cf866a5-8fa9-4b18-a658-d6fb3d9ff045.png)
+
 
 
 
@@ -43,5 +46,6 @@ Para instalar la extension siga estos pasos
 Para que la extensión funcione, tiene que tener en primer plano la pagina de chatGPT y la ventana emergente de la extensión
 
 
-![image](https://user-images.githubusercontent.com/32722140/232669885-d8db3191-dfe4-45e8-ab35-537c6fdbe1ea.png)
+
+
 
