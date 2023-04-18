@@ -1,8 +1,11 @@
+
+
 {    
     "name": "nombre de mi extension copada",
     "version": "1.0.1",
     "description": "una explicacion de mi extension",
     "manifest_version": 3,
+    "permissions": ["activeTab"],
     "action": {
         "default_popup": "popup.html",
         "default_icon": {
@@ -13,6 +16,7 @@
           }
 
       },
+    
       "icons":{
         "16": "images/1.png",
         "32": "images/2.png",
@@ -27,5 +31,5 @@
           "js": ["content-script.js"]
         }
       ]
-      
+
   }

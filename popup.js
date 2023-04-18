@@ -49,3 +49,41 @@ function mostrarTexto(texto, color) {
   chat.appendChild(contenido); // agregamos el nodo de texto al elemento <div>
   document.getElementById("respuesta").appendChild(chat); // agregamos el elemento <div> al elemento con id "respuesta"
 }
+
+function guardarEnPDF() {
+  // Obtener el contenido HTML de la página actual del popup
+  let contenido = document.documentElement.outerHTML;
+
+  // Crear un objeto de tipo blob con el contenido HTML
+  let blob = new Blob([contenido], {type: 'text/html'});
+
+  // Crear un objeto de tipo URL a partir del objeto blob
+  let url = URL.createObjectURL(blob);
+
+  // Crear un objeto de tipo ventana con el URL del objeto blob
+  let ventana = window.open(url);
+
+  // Esperar un segundo para que la ventana se cargue completamente
+  setTimeout(() => {
+    // Imprimir la ventana actual a PDF
+    ventana.print();
+
+    // Cerrar la ventana actual
+    ventana.close();
+
+    // Liberar la memoria utilizada por el objeto URL
+    URL.revokeObjectURL(url);
+  }, 1000);
+}
+
+
+
+
+
+
+
+
+
+
+
+
