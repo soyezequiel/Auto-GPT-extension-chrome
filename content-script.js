@@ -63,7 +63,7 @@ function obtenerTareas(stringTareas) {
 async function agenteCreacionDeTareas(nombre, objetivo) {
 
   let mensaje = "Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres " + nombre + " y el objetivo es " + objetivo + ".   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp";
-  var respuesta = await enviarMensaje(mensaje);
+  var respuesta = await enviarMensaje(mensaje,"creacion");
 
 // Procesar tareas para convertila en un array de tareas
   const arrayTareas = respuesta.split("\n");
@@ -167,11 +167,11 @@ async function agenteDeEjecucion(tarea){
     console.log("oroooooooooo " + soluciones);   
     
     let mensaje = "  " + tarea + " ejecuta la tarea , en caso de no tener información suficiente dime como conseguirla  información:   " + soluciones +  "";
-    var solucion = await enviarMensaje(mensaje);
-    enviarTexto("Ejecutando tarea: " + solucion, "orange");
+    var solucion = await enviarMensaje(mensaje,"ejecucion");
+    enviarTexto("Ejecutando tarea: " + tarea +" --> "+ solucion, "orange");
     
     let mensaje2 = "  dame un titulo que resuma esto \n " + solucion;
-    var titulo = await enviarMensaje(mensaje2);
+    var titulo = await enviarMensaje(mensaje2,"ejecucion");
   
     agenteCreacionDeTareas2(titulo,tarea,solucion,soluciones);
 
@@ -180,7 +180,7 @@ async function agenteDeEjecucion(tarea){
 async function agenteCreacionDeTareas2(titulo,tarea,solucion,informacion) {
 
   let mensaje = "Conociendo esta tarea \n \n "  + tarea +  "\n información:  \n" + informacion + "  \n su ejecución \n " + solucion + " \n en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo  La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n La respuesta tiene que tener este formato  Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ";
-  var respuesta = await enviarMensaje(mensaje);
+  var respuesta = await enviarMensaje(mensaje,"creacion");
 
   // const tareasArreglo = respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
   console.log("llegue");
@@ -292,7 +292,7 @@ let cadena= await obtenerTodasLasTareasSinSolucion()
  
 let mensaje = await "prioriza las tareas teniendo en cuenta su prioridad y su correlatividad. sin agregar texto extra, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  " + cadena ;
 
-var respuesta = await enviarMensaje(mensaje);
+var respuesta = await enviarMensaje(mensaje,"prioridad");
 // Procesar tareas para convertila en un array de tareas
 const arrayTareas = respuesta.split("\n");
 const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
@@ -692,7 +692,7 @@ function clickButton() {
 }
 
 
-
+/*
 async function enviarMensaje(mensaje) {
 
  // clickButton()
@@ -740,13 +740,13 @@ async function enviarMensaje(mensaje) {
     console.log('El cuadro de texto no existe en la página.');
   }
 }
+*/
 
 
-/*
-async function enviarMensaje(mensaje) {
-
+async function enviarMensaje(mensaje,chat) {
   await new Promise((resolve) => {
-    clickButton();
+  //  clickButton();
+  seleccionarChat(chat);
     setTimeout(() => {
       resolve();
     }, 3000);
@@ -797,4 +797,26 @@ async function enviarMensaje(mensaje) {
   }
 
 }
-*/
+
+function seleccionarChat(nombre){
+  // codigo para seleccionar un chat segun su nombre-------------
+  // Asignar el nombre del elemento a buscar a una variable
+  let elementName = nombre;
+  // Obtener todos los elementos que contienen el texto
+  const elements = document.querySelectorAll('.flex-1.text-ellipsis.max-h-5.overflow-hidden.break-all.relative');
+  // Iterar sobre los elementos para encontrar el que coincide con el nombre
+  let targetElement;
+  elements.forEach(element => {
+  if (element.textContent.trim() === elementName) {
+      targetElement = element;
+  }
+  });
+  // Hacer clic en el elemento seleccionado
+  if (targetElement) {
+  targetElement.click();
+  }
+}
+function obtenerNombre() {
+const pageTitle = document.title;
+return pageTitle;
+}
