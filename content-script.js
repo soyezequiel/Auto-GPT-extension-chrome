@@ -35,8 +35,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     // continuar=false;
   }
 });
-const btnImprimir = document.getElementById("btnImprimir");
-btnImprimir.addEventListener("click", descargarPDF);
 
 
 
