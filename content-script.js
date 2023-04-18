@@ -48,14 +48,29 @@ function enviarTexto(texto,color) {
   }
 }
 
-
+function obtenerTareas(stringTareas) {
+  // Separar las tareas en un array usando el caracter de salto de línea como separador
+  const arrayTareas = stringTareas.split("\n");
+  
+  // Filtrar el array para eliminar elementos vacíos o que solo contengan espacios en blanco
+  const tareasFiltradas = arrayTareas.filter(tarea => tarea.trim() !== "");
+  
+  // Retornar el array de tareas filtradas
+  return tareasFiltradas;
+}
 
 
 async function agenteCreacionDeTareas(nombre, objetivo) {
 
-  let mensaje = "Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres " + nombre + " y el objetivo es " + objetivo + ".   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, quiero que la respuesta este en este formato y agrega zzz antes y despues de cada tarea ";
+  let mensaje = "Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres " + nombre + " y el objetivo es " + objetivo + ".   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp";
   var respuesta = await enviarMensaje(mensaje);
-  const tareasArreglo = respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
+
+// Procesar tareas para convertila en un array de tareas
+  const arrayTareas = respuesta.split("\n");
+  const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
+  const tareasArreglo = tareasArregloConTarea.map(tarea => tarea.replace(/^Tarea\d+: /, ''));
+
+
   console.log("llegue");
   /*
   enviarTexto("Tarea agregada 1: " + tareasArreglo[0]);
@@ -114,8 +129,8 @@ function pilaDeTareas(tareasArreglo, ordenado) {
     for (let i = 0; i < tareasArreglo.length; i++) {
       enviarTexto("Tarea agregada: " + tareasArreglo[i], "green");
     }
-    agenteDeEjecucion(tareasArreglo[0]);    //este no deberia de estar aqui pero como no anda la priorizacion de tarea, estara aqui
-    //agentePriorizacionDeTareas();  lo dejo comentado porque me anda mal la priorizacion de tarea
+    //agenteDeEjecucion(tareasArreglo[0]);    //este no deberia de estar aqui pero como no anda la priorizacion de tarea, estara aqui
+    agentePriorizacionDeTareas();  //lo dejo comentado porque me anda mal la priorizacion de tarea
 
   }
 }
@@ -155,7 +170,7 @@ async function agenteDeEjecucion(tarea){
     var solucion = await enviarMensaje(mensaje);
     enviarTexto("Ejecutando tarea: " + solucion, "orange");
     
-    let mensaje2 = "  dame un titulo que resuma esto " + solucion;
+    let mensaje2 = "  dame un titulo que resuma esto \n " + solucion;
     var titulo = await enviarMensaje(mensaje2);
   
     agenteCreacionDeTareas2(titulo,tarea,solucion,soluciones);
@@ -164,7 +179,7 @@ async function agenteDeEjecucion(tarea){
 
 async function agenteCreacionDeTareas2(titulo,tarea,solucion,informacion) {
 
-  let mensaje = " "  + tarea +  " información:  " + informacion + " su ejecución  " + solucion + " en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo  La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso   ";
+  let mensaje = "Conociendo esta tarea \n \n "  + tarea +  "\n información:  \n" + informacion + "  \n su ejecución \n " + solucion + " \n en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo  La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n La respuesta tiene que tener este formato  Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ";
   var respuesta = await enviarMensaje(mensaje);
 
   // const tareasArreglo = respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
@@ -275,10 +290,14 @@ async function agentePriorizacionDeTareas() {
 
 let cadena= await obtenerTodasLasTareasSinSolucion()
  
-let mensaje = await "prioriza las tareas teniendo en cuenta su prioridad y su correlatividad. sin agregar texto extra, solo agrega zzz antes y despues de cada tarea:    " + cadena;
+let mensaje = await "prioriza las tareas teniendo en cuenta su prioridad y su correlatividad. sin agregar texto extra, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  " + cadena ;
 
 var respuesta = await enviarMensaje(mensaje);
-const tareasArreglo = await respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
+// Procesar tareas para convertila en un array de tareas
+const arrayTareas = respuesta.split("\n");
+const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
+const tareasArreglo = tareasArregloConTarea.map(tarea => tarea.replace(/^Tarea\d+: /, ''));
+
 
 console.log(tareasArreglo);
 borrarBaseDeDatos2();
@@ -663,9 +682,25 @@ function puedoContinuar() {
     return true;
   }
 }
+
+
+function clickButton() {
+  const button = document.querySelector('a.flex');
+  button.click();
+
+  
+}
+
+
+
 async function enviarMensaje(mensaje) {
+
+ // clickButton()
+    // código que se ejecutará después de 2 segundos
+ 
   // console.log("mensaje " + mensaje);
   // Obtener el cuadro de texto
+
   const textarea = document.querySelector('textarea[placeholder="Send a message..."]');
   if (textarea !== null) {
     // Establecer el valor del cuadro de texto
@@ -681,6 +716,7 @@ async function enviarMensaje(mensaje) {
     // Desencadenar el evento keydown
     textarea.dispatchEvent(event);
 
+ 
     // Esperar a que puedoContinuar() devuelva true
     await new Promise((resolve) => {
       const checkContinuar = setInterval(() => {
@@ -704,3 +740,61 @@ async function enviarMensaje(mensaje) {
     console.log('El cuadro de texto no existe en la página.');
   }
 }
+
+
+/*
+async function enviarMensaje(mensaje) {
+
+  await new Promise((resolve) => {
+    clickButton();
+    setTimeout(() => {
+      resolve();
+    }, 3000);
+  });
+
+  // código que se ejecutará después de 3 segundos
+ 
+  // console.log("mensaje " + mensaje);
+  // Obtener el cuadro de texto
+
+  const textarea = document.querySelector('textarea[placeholder="Send a message..."]');
+  if (textarea !== null) {
+    // Establecer el valor del cuadro de texto
+    textarea.value = mensaje;
+
+    // Crear un evento keydown para simular presionar la tecla Enter
+    const event = new KeyboardEvent('keydown', {
+      bubbles: true,
+      cancelable: true,
+      keyCode: 13,
+    });
+
+    // Desencadenar el evento keydown
+    textarea.dispatchEvent(event);
+
+ 
+    // Esperar a que puedoContinuar() devuelva true
+    await new Promise((resolve) => {
+      const checkContinuar = setInterval(() => {
+        if (puedoContinuar()) {
+          clearInterval(checkContinuar);
+          resolve();
+        }
+      }, 100);
+    });
+
+    const elementos = document.querySelectorAll('.prose');
+    const ultimoElemento = elementos[elementos.length - 1];
+    const texto = ultimoElemento.textContent.trim();
+    //console.log(texto);
+    // Enviar mensaje a popup.js
+    var respuesta = texto;
+    chrome.runtime.sendMessage({ tipo: "respuesta", datos: { valor: respuesta } });
+    // console.log("respuesta:  " + respuesta );
+    return texto;
+  } else {
+    console.log('El cuadro de texto no existe en la página.');
+  }
+
+}
+*/
