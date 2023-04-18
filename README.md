@@ -3,7 +3,7 @@ a extensión de AutoGPT es una herramienta para solucionar problemas basada en c
 
 Una vez que se hayan ingresado estos campos, se podrá presionar el botón "Trabajar", el cual comenzará a mostrar una serie de resultados parciales que serán la resolución del problema original.
 
-Para descargar e instalar la extensión, debes ir al repositorio en GitHub y seguir las instrucciones que se encuentran en el archivo README. La extensión utiliza JavaScript y la API de Chrome. No tiene autenticación y se puede configurar el nombre de la base de datos y la tabla.
+
 
 Si deseas contribuir al desarrollo del proyecto, puedes hacerlo de varias maneras, como por ejemplo:
 
@@ -16,3 +16,22 @@ Es importante destacar que cualquier contribución será muy apreciada y ayudar�
 En resumen, la extensión de AutoGPT es una herramienta útil para solucionar problemas basada en chat GPT que se presenta como una extensión para Chrome. Si deseas descargarla, instalarla o contribuir al desarrollo del proyecto, puedes visitar el repositorio en GitHub y seguir las instrucciones que se encuentran allí.
 
 Actualmente el complemento presenta errores debido a no poder controlar bien las respuestas de ChatGPT, por lo que en la mayoría de los casos, no se logra resolver la meta.
+
+
+Para instalar la extension siga estos pasos
+
+1- Abre Google Chrome y haz clic en el icono de tres puntos en la esquina superior derecha de la ventana.
+
+2 - Selecciona "Más herramientas" y luego "Extensiones" en el menú desplegable.
+
+3 - En la página de extensiones, activa el modo de desarrollador en la esquina superior derecha de la página.
+
+4 - Haz clic en el botón "Cargar descomprimida" en la parte superior de la página.
+
+5 - Busca la carpeta donde se encuentre la extension.
+
+6 - Haz clic en "Seleccionar carpeta" o "Abrir" dependiendo de tu sistema operativo.
+
+7 - La extensión se agregará a la lista de extensiones de Chrome y estará lista para usar.
+
+Para que la extensión funcione, tiene que tener en primer plano la pagina de chatGPT y la ventana emergente de la extensión
