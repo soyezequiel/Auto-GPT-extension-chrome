@@ -86,9 +86,9 @@ async function agenteCreacionDeTareas(nombre, objetivo) {
   console.log("nombre: " + nombre);
 
 
-  GuardarEnMemoria("objetivo",nombre,objetivo);
+  GuardarEnMemoria("0",nombre,objetivo);
 
-  pilaDeTareas(tareasArreglo,false);
+  pilaDeTareas( "0",tareasArreglo,false);
   
   //return tareasArreglo;
 
@@ -102,12 +102,38 @@ function GuardarEnMemoria(titulo,objetivo,nombre){
     console.log(tareas);
   });
 }
+function guardarTareaSinSolucion(titulo, tarea) {
+  const request2 = indexedDB.open('miBaseDeDatos2');
+  request2.onsuccess = function (event) {
+    const db = event.target.result;
 
-function pilaDeTareas(tareasArreglo, ordenado) {
+    // Agrega el objeto de almacenamiento 'tareasSinSoluciones' en caso de que no exista
+    const transaction = db.transaction(['tareasSinSoluciones'], 'readwrite');
+    if (!db.objectStoreNames.contains('tareasSinSoluciones')) {
+      db.createObjectStore('tareasSinSoluciones', { keyPath: 'id', autoIncrement: true });
+    }
+
+    const objectStore = transaction.objectStore('tareasSinSoluciones');
+    const nuevaTarea = { titulo: titulo, tarea: tarea };
+    objectStore.add(nuevaTarea);
+    transaction.oncomplete = function () {
+      console.log('Tarea sin solución guardada con éxito');
+    };
+    transaction.onerror = function () {
+      console.log('Error al guardar la tarea sin solución');
+    };
+  };
+}
+
+
+
+
+
+function pilaDeTareas(titulo,tareasArreglo, ordenado) {
 
   //guarda en la cola de tareas
   for (let i = 0; i < tareasArreglo.length; i++) {
-    guardarTareaSinSolucion(" no deberia de haber titulo ", tareasArreglo[i]);
+    guardarTareaSinSolucion(titulo, tareasArreglo[i]);
   }
   // imprimir tareas sin solucion
   // Llamada a la función para obtener las tareas y luego imprimirlas
@@ -134,51 +160,30 @@ function pilaDeTareas(tareasArreglo, ordenado) {
 
   }
 }
-function obtenerTareasPromesa() {
-  return new Promise(function(resolve, reject) {
-    obtenerTareas(function(tareas) {
-      const titulosTareas = tareas.map(function(tarea) {
-        return tarea.titulo;
-      });
-      resolve(titulosTareas);
-    });
-  });
-}
 
 async function agenteDeEjecucion(tarea){
 
 
 
     console.log("llegue aqui");
-    const titulosTareas = await obtenerTareasPromesa();
-    let titulosAbuscar = encontrarTitulosSimilares(titulosTareas, tarea);
-    console.log("Titulos a buscar : " + titulosAbuscar);
-    
+    let todasLasSolcuiones = await obtenersoluciones();
+    console.log("solucioneeeeeeeeeeeeeeees :  " + todasLasSolcuiones);
+    let soluciones = await encontrarTitulosSimilares(todasLasSolcuiones, tarea);
+      
 
-    let encontradas = [];
-    for (let i = 0; i < titulosAbuscar.length; i++) {
-      let tarea = await obtenerTareaPorTitulo(titulosAbuscar[i]);
-      encontradas.push(tarea);
-    }
-    let soluciones = "";
-    for (let i = 0; i < encontradas.length; i++) {
-      soluciones += encontradas[i].soluciones + "\n";
-    }
-    console.log("oroooooooooo " + soluciones);   
-    
     let mensaje = "  " + tarea + " ejecuta la tarea , en caso de no tener información suficiente dime como conseguirla  información:   " + soluciones +  "";
     var solucion = await enviarMensaje(mensaje,"ejecucion");
     enviarTexto("Ejecutando tarea: " + tarea +" --> "+ solucion, "orange");
     
-    let mensaje2 = "  dame un titulo que resuma esto \n " + solucion;
-    var titulo = await enviarMensaje(mensaje2,"ejecucion");
+   // let mensaje2 = "  dame un titulo que resuma esto \n " + solucion;
+    //var titulo = await enviarMensaje(mensaje2,"ejecucion");
   
-    agenteCreacionDeTareas2(titulo,tarea,solucion,soluciones);
+    agenteCreacionDeTareas2((parseInt(tarea.titulo)+1).toString(),tarea,solucion,soluciones);
 
 }
 
 async function agenteCreacionDeTareas2(titulo,tarea,solucion,informacion) {
-
+  console.log(titulo);
   let mensaje = "Conociendo esta tarea \n \n "  + tarea +  "\n información:  \n" + informacion + "  \n su ejecución \n " + solucion + " \n en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo  La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n La respuesta tiene que tener este formato  Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ";
   var respuesta = await enviarMensaje(mensaje,"creacion");
 
@@ -197,13 +202,13 @@ async function agenteCreacionDeTareas2(titulo,tarea,solucion,informacion) {
   GuardarEnMemoria(titulo,tarea,solucion);
   let tareasArreglo = [ respuesta ];
 
-  pilaDeTareas(tareasArreglo,false);
+  pilaDeTareas((parseInt(titulo)+1).toString(),tareasArreglo,false);
   
   //return tareasArreglo;
 
 }
 
-function obtenerTareaPorTitulo(titulo) {
+/*function obtenerTareaPorTitulo(titulo) {
   return new Promise(function(resolve, reject) {
     const request = indexedDB.open('miBaseDeDatos');
     request.onsuccess = function(event) {
@@ -229,7 +234,7 @@ function obtenerTareaPorTitulo(titulo) {
     };
   });
 }
-
+*/
 
 
 
@@ -381,6 +386,50 @@ function obtenerTareas(callback) {
     };
   };
 }
+async function obtenerTodasLasSoluciones() {
+  try {
+    const soluciones = await obtenersoluciones();
+    console.log("soluciones: ", soluciones);
+  } catch (error) {
+    console.error("Error al obtener las soluciones: ", error);
+  }
+}
+function obtenersoluciones() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('miBaseDeDatos');
+    request.onsuccess = function (event) {
+      const db = event.target.result;
+      const transaction = db.transaction(['tareas'], 'readonly');
+      const objectStore = transaction.objectStore('tareas');
+      const cursor = objectStore.openCursor();
+      const soluciones = []; // Cambiar "tareas" a "soluciones"
+      cursor.onsuccess = function (event) {
+        const cursor = event.target.result;
+        if (cursor) {
+          soluciones.push(cursor.value.soluciones); // Cambiar "solucion" a "soluciones"
+          cursor.continue();
+        } else {
+          resolve(soluciones); // Cambiar "tareas" a "soluciones"
+        }
+      };
+      cursor.onerror = function (event) {
+        reject(event.target.error); // Rechazamos la Promise con el error del cursor
+      };
+    };
+    request.onerror = function (event) {
+      reject(event.target.error); // Rechazamos la Promise con el error de la solicitud
+    };
+  });
+}
+
+
+
+
+  
+
+  
+
+
 function obtenerTitulosDeTareas(callback) {
   obtenerTareas(function(tareas) {
     const titulos = tareas.map(function(tarea) {
@@ -389,6 +438,8 @@ function obtenerTitulosDeTareas(callback) {
     callback(titulos);
   });
 }
+
+
 
 function guardarTarea(titulo, tarea, soluciones) {
   const request = indexedDB.open('miBaseDeDatos');
@@ -448,22 +499,52 @@ request2.onupgradeneeded = function (event) {
   tareasObjectStore.createIndex('tarea', 'tarea', { unique: false });
 };
 
-function guardarTareaSinSolucion(titulo, tarea) {
-  const request2 = indexedDB.open('miBaseDeDatos2');
-  request2.onsuccess = function (event) {
+function obtenerTareasSinSolucion() {
+  const request = indexedDB.open('miBaseDeDatos2');
+  request.onsuccess = function (event) {
     const db = event.target.result;
-    const transaction = db.transaction(['tareasSinSoluciones'], 'readwrite');
+    const transaction = db.transaction(['tareasSinSoluciones'], 'readonly');
     const objectStore = transaction.objectStore('tareasSinSoluciones');
-    const nuevaTarea = { titulo: titulo, tarea: tarea };
-    objectStore.add(nuevaTarea);
-    transaction.oncomplete = function () {
-      console.log('Tarea sin solución guardada con éxito');
-    };
-    transaction.onerror = function () {
-      console.log('Error al guardar la tarea sin solución');
+    const tareas = [];
+
+    // Verifica que el objeto de almacenamiento 'tareasSinSoluciones' exista en la base de datos
+    const objectStoreNames = db.objectStoreNames;
+    if (!objectStoreNames.contains('tareasSinSoluciones')) {
+      console.log("El objeto de almacenamiento 'tareasSinSoluciones' no existe");
+      return;
+    }
+
+    objectStore.openCursor().onsuccess = function (event) {
+      const cursor = event.target.result;
+      if (cursor) {
+        tareas.push(cursor.value);
+        cursor.continue();
+      } else {
+        console.log('Tareas sin solución obtenidas con éxito', tareas);
+      }
     };
   };
 }
+
+  request2.onsuccess = function (event) {
+    const db = event.target.result;
+    if (db.objectStoreNames.contains('tareasSinSoluciones')) {
+      const transaction = db.transaction(['tareasSinSoluciones'], 'readwrite');
+      const objectStore = transaction.objectStore('tareasSinSoluciones');
+      const nuevaTarea = { titulo: titulo, tarea: tarea };
+      objectStore.add(nuevaTarea);
+      transaction.oncomplete = function () {
+        console.log('Tarea sin solución guardada con éxito');
+      };
+      transaction.onerror = function () {
+        console.log('Error al guardar la tarea sin solución');
+      };
+    } else {
+      console.log('El objeto de almacenamiento "tareasSinSoluciones" no existe');
+    }
+  };
+
+
 
 function borrarBaseDeDatos2() {
   const request2 = indexedDB.open('miBaseDeDatos2');
