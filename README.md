@@ -35,3 +35,7 @@ Para instalar la extension siga estos pasos
 7 - La extensión se agregará a la lista de extensiones de Chrome y estará lista para usar.
 
 Para que la extensión funcione, tiene que tener en primer plano la pagina de chatGPT y la ventana emergente de la extensión
+
+
+![image](https://user-images.githubusercontent.com/32722140/232669885-d8db3191-dfe4-45e8-ab35-537c6fdbe1ea.png)
+
