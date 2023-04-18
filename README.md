@@ -1,5 +1,5 @@
 # Auto-GPT-extension-chrome
-a extensión de AutoGPT 3.5 es una herramienta para solucionar problemas basada en chat GPT que se presenta como una extensión para Chrome. Al hacer clic en el icono de la extensión, se abrirá un popup que mostrará un formulario con los siguientes campos: "Cómo" y "Quiero". En el campo "Cómo", el usuario deberá ingresar la persona o el rol que tiene la necesidad. En el campo "Quiero", se ingresará lo que se desea obtener, ya sea una funcionalidad, característica, etc.
+La extensión de AutoGPT 3.5 es una herramienta para solucionar problemas basada en chat GPT que se presenta como una extensión para Chrome. Al hacer clic en el icono de la extensión, se abrirá un popup que mostrará un formulario con los siguientes campos: "Cómo" y "Quiero". En el campo "Cómo", el usuario deberá ingresar la persona o el rol que tiene la necesidad. En el campo "Quiero", se ingresará lo que se desea obtener, ya sea una funcionalidad, característica, etc.
 
 Una vez que se hayan ingresado estos campos, se podrá presionar el botón "Trabajar", el cual comenzará a mostrar una serie de resultados parciales que serán la resolución del problema original.
 
