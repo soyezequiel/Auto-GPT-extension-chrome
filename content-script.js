@@ -4,17 +4,19 @@ var continuar = true;
 var ProfundidadConfigurada= 1;
 
 //listener
-//escuchador para resivir el mensaje desde popup.js que a su ves lo recibe desde la vista
 chrome.runtime.onMessage.addListener(function (mensaje, sender, respuesta) {
   if (mensaje.tipo === "informacion") {
     borrarBaseDeDatosDeSoluciones();
     borrarBaseDeDatosDeTareas();
-    const mensajeAenviar = mensaje.datos.valor;
-
-
-    principal(mensajeAenviar);
+    
+    const nombre = mensaje.datos.nombre; // Obtener el valor del primer campo de consulta
+    const objetivo = mensaje.datos.objetivo; // Obtener el valor del segundo campo de consulta
+    const numero = mensaje.datos.numero; // Obtener el valor del campo numérico deslizante
+    ProfundidadConfigurada=numero;
+    principal(nombre, objetivo);
   }
 });
+
 // escuchadores
 chrome.runtime.onMessage.addListener(function (mensaje, sender, sendResponse) {
   if (typeof mensaje.texto === "string") {
@@ -38,12 +40,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 
 
+
+
 //Maquina de estados finito
 
-async function principal(mensajeAenviar) {
+async function principal(nombre, objetivo) {
 
-  let nombre = mensajeAenviar[0];
-  let objetivo = mensajeAenviar[1];
   // aqui se enviara al agente de creacion de tareas el nombre y el objetivo para
 
   let texto = "Nombre: " + nombre + '\n' + "Objetivo: " + objetivo;

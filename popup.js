@@ -1,20 +1,23 @@
 console.log("popup.js");
 const form = document.querySelector('#formulario');
-
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const nombre = document.querySelector('#nombre').value; // Obtener el valor del primer campo de consulta
   const objetivo = document.querySelector('#objetivo').value; // Obtener el valor del segundo campo de consulta
-  const miArreglo = [nombre, objetivo];
+  const numero = document.querySelector('#numero').value; // Obtener el valor del campo numérico deslizante
 
   chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
     await chrome.tabs.sendMessage(tabs[0].id, {
       tipo: "informacion",
-      datos: { valor: miArreglo }
+      datos: {
+        nombre: nombre,
+        objetivo: objetivo,
+        numero: numero
+      }
     });
   });
-
 });
+
 
 
 // listener para escribir la respuesta
@@ -28,18 +31,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 
-//listener desde el htlm para detener la ejecucion
-document.getElementById('detener').addEventListener('click', function () {
 
-  // En popup.js
-  const continuar = false;
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, { continuar: continuar }, function (response) {
-      console.log('Mensaje enviado a content_script.js');
-    });
-  });
-
-});
 
 function mostrarTexto(texto, color) {
   var chat = document.createElement("div"); // creamos un elemento <div> para el chat
