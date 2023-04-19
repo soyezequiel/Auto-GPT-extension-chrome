@@ -1,9 +1,13 @@
 # Auto-GPT-extension-chrome
 
 
-Actualmente el complemento presenta errores debido a no poder controlar bien las respuestas de ChatGPT, por lo que en la mayoría de los casos, no se logra resolver la meta.
+Para su correcto funcionamiento debes de tener la pagina de chatGPT en primer plano con la ventana de la extension de chrome a la vista y tener estos 3 chat creados, con estos nombres en especifico
 
+![image](https://user-images.githubusercontent.com/32722140/232927241-8cf866a5-8fa9-4b18-a658-d6fb3d9ff045.png)
 
+![image](https://user-images.githubusercontent.com/32722140/232927829-e558b9d5-c730-4781-9d7f-7f92fde73300.png)
+
+Actualmente está en BETA, por lo que tiene una tasa alta de fallos.
 
 La extensión de AutoGPT 3.5 es una herramienta para solucionar problemas basada en chat GPT que se presenta como una extensión para Chrome. Al hacer clic en el icono de la extensión, se abrirá un popup que mostrará un formulario con los siguientes campos: "Cómo" y "Quiero". En el campo "Cómo", el usuario deberá ingresar la persona o el rol que tiene la necesidad. En el campo "Quiero", se ingresará lo que se desea obtener, ya sea una funcionalidad, característica, etc.
 
@@ -43,5 +47,6 @@ Para instalar la extension siga estos pasos
 Para que la extensión funcione, tiene que tener en primer plano la pagina de chatGPT y la ventana emergente de la extensión
 
 
-![image](https://user-images.githubusercontent.com/32722140/232669885-d8db3191-dfe4-45e8-ab35-537c6fdbe1ea.png)
+
+
 
