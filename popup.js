@@ -1,3 +1,4 @@
+//import { enviarMensaje } from './gpt.js';
 console.log("popup.js");
 const form = document.querySelector('#formulario');
 form.addEventListener('submit', async (event) => {

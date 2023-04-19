@@ -1,5 +1,3 @@
-
-
 {    
     "name": "nombre de mi extension copada",
     "version": "1.0.1",
@@ -22,7 +20,12 @@
         "32": "images/2.png",
         "48": "images/3.png",
         "128": "images/4.png"
-      },
+      }, "web_accessible_resources": [
+        {
+          "resources": ["gpt.js"],
+          "matches": ["<all_urls>"]
+        }
+    ],
 
       "content_scripts": [
         {

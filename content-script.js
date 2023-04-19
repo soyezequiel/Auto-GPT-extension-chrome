@@ -1,18 +1,318 @@
+class IndexedDB {
+  constructor(dbName, version, storeNames) {
+    this.dbName = dbName; // Nombre de la base de datos
+    this.version = version; // Versión de la base de datos
+    this.storeNames = storeNames; // Nombres de los stores
+    this.db = null; // Objeto de base de datos
+    this.store = {}; // Objeto de stores
+    this.open(); // Método para abrir la base de datos
+  }
+
+  // Método para abrir la base de datos
+  open() {
+    const request = window.indexedDB.open(this.dbName, this.version);
+    request.onupgradeneeded = (event) => {
+      this.db = event.target.result;
+      for (let i = 0; i < this.storeNames.length; i++) {
+        this.store[this.storeNames[i]] = this.db.createObjectStore(this.storeNames[i], { keyPath: "id" });
+      }
+    };
+    request.onsuccess = (event) => {
+      this.db = event.target.result;
+      for (let i = 0; i < this.storeNames.length; i++) {
+        this.store[this.storeNames[i]] = this.db.transaction(this.storeNames[i], "readwrite").objectStore(this.storeNames[i]);
+      }
+    };
+  }
+
+  // Método para agregar un registro
+  async agregar(storeName, registro) {
+    const transaction = this.db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
+    const request = store.add(registro);
+    await this._promisifyRequest(request);
+  }
+
+  // Método para obtener un registro
+  async obtener(storeName, id) {
+    const transaction = this.db.transaction(storeName, "readonly");
+    const store = transaction.objectStore(storeName);
+    const request = store.get(id);
+    const result = await this._promisifyRequest(request);
+    return result;
+  }
+
+  // Método para actualizar un registro
+  async actualizar(storeName, id, cambios) {
+    const transaction = this.db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
+    const registro = await this.obtener(storeName, id);
+    Object.assign(registro, cambios);
+    const request = store.put(registro);
+    await this._promisifyRequest(request);
+  }
+
+  // Método para eliminar un registro
+  async eliminar(storeName, id) {
+    const transaction = this.db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
+    const request = store.delete(id);
+    await this._promisifyRequest(request);
+  }
+
+  // Método para obtener todos los registros de un store
+  async obtenerTodos(storeName) {
+    const transaction = this.db.transaction(storeName, "readonly");
+    const store = transaction.objectStore(storeName);
+    const request = store.getAll();
+    const result = await this._promisifyRequest(request);
+    return result;
+  }
+
+  // Método para convertir una solicitud de IndexedDB en una promesa
+  _promisifyRequest(request) {
+    return new Promise((resolve, reject) => {
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  }
+  // Método para limpiar todos los registros de un store
+  async limpiar(storeName) {
+    const transaction = this.db.transaction(storeName, "readwrite");
+    const store = transaction.objectStore(storeName);
+    const request = store.clear();
+    await this._promisifyRequest(request);
+  }
+  // Método para agregar un registro al final de la pila
+  async apilar(storeName, registro) {
+    const ultimoRegistro = await this.obtenerUltimo(storeName);
+    if (ultimoRegistro) {
+      registro.id = ultimoRegistro.id + 1;
+    } else {
+      registro.id = 1;
+    }
+    await this.agregar(storeName, registro);
+  }
+
+  // Método para obtener el último registro de la pila
+  async obtenerUltimo(storeName) {
+    const registros = await this.obtenerTodos(storeName);
+    return registros.length > 0 ? registros[registros.length - 1] : null;
+  }
+
+  // Método para obtener y eliminar el último registro de la pila
+  async desapilar(storeName) {
+    const ultimoRegistro = await this.obtenerUltimo(storeName);
+    if (ultimoRegistro) {
+      await this.eliminar(storeName, ultimoRegistro.id);
+    }
+    return ultimoRegistro;
+  }
+
+}
+
+
+const nombreDeBaseDeDatos = "mi-base-de-datos";
+const versionDeLaBaseDeDatos = 1;
+const store1="memoria";
+const store2="pila";
+const misAlmacenesDeDatos = [store1, store2];
+const miBD = new IndexedDB(nombreDeBaseDeDatos, versionDeLaBaseDeDatos, misAlmacenesDeDatos);
+
+
+
+
+
+
+
+
+//memoria
+class Memoria{
+  constructor(store){
+    this.store=store;
+  }
+async  obtenerTodasLasSoluciones() {
+  const objetoTarea = await miBD.obtenerTodos(this.store);
+  return objetoTarea.map(objetoTarea => objetoTarea.solucion);
+}
+
+
+ GuardarEnMemoria(profundidad, tarea, solucion) {
+  let objetoTarea = {
+    profundidad: profundidad,
+    tarea: tarea,
+    solucion: solucion
+  };
+  miBD.apilar(this.store, objetoTarea);
+}
+limpiarBaseDeDatos() {
+  miBD.limpiar(this.store);
+}
+}
+
+//pila
+
+class Pila {
+  constructor(store){
+    this.store=store;
+  }
+  limpiarBaseDeDatos() {
+    miBD.limpiar(this.store);
+      }
+
+       guardarTarea(profundidad, tarea) {
+        let objetoTarea = {
+          profundidad: profundidad,
+          tarea: tarea,
+          solucion: ""
+        };
+        miBD.apilar(this.store, objetoTarea);
+      }
+  async     obtenerTodasLasTareas() {   
+        const objetoTarea = await miBD.obtenerTodos(this.store);   
+        return objetoTarea.map(objetoTarea => objetoTarea.tarea);
+      }
+
+       borrarTareaEnTope() {    
+        return miBD.desapilar(this.store);
+      }
+
+}
+const baseDeDatos1 = new Memoria(store1);
+const baseDeDatos2 = new Pila(store2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class ChatGPT {
+
+  async enviarMensaje(mensaje, chat) {
+    await new Promise((resolve) => {
+      //  clickButton();
+      this.#seleccionarChat(chat);
+      setTimeout(() => {
+        resolve();
+      }, 3000);
+    });
+
+    // código que se ejecutará después de 3 segundos
+
+    // console.log("mensaje " + mensaje);
+    // Obtener el cuadro de texto
+
+    const textarea = document.querySelector('textarea[placeholder="Send a message..."]');
+    if (textarea !== null) {
+      // Establecer el valor del cuadro de texto
+      textarea.value = mensaje;
+
+      // Crear un evento keydown para simular presionar la tecla Enter
+      const event = new KeyboardEvent('keydown', {
+        bubbles: true,
+        cancelable: true,
+        keyCode: 13,
+      });
+
+      // Desencadenar el evento keydown
+      textarea.dispatchEvent(event);
+
+
+      // Esperar a que puedoContinuar() devuelva true
+      await new Promise((resolve) => {
+        const checkContinuar = setInterval(() => {
+          if (this.#puedoContinuar()) {
+            clearInterval(checkContinuar);
+            resolve();
+          }
+        }, 100);
+      });
+
+      const elementos = document.querySelectorAll('.prose');
+      const ultimoElemento = elementos[elementos.length - 1];
+      const texto = ultimoElemento.textContent.trim();
+      //console.log(texto);
+      // Enviar mensaje a popup.js
+      var respuesta = texto;
+      chrome.runtime.sendMessage({ tipo: "respuesta", datos: { valor: respuesta } });
+      // console.log("respuesta:  " + respuesta );
+      return texto;
+    } else {
+      console.log('El cuadro de texto no existe en la página.');
+    }
+
+  }
+  #puedoContinuar() {
+    if (document.querySelector('.text-2xl span:first-child') !== null) {
+      console.log("espera"); // El elemento existe
+      return false;
+    } else {
+      //console.log("puedoContinuar dice " +  true); // El elemento no existe
+      return true;
+    }
+  }
+  #seleccionarChat(nombre) {
+    // codigo para seleccionar un chat segun su nombre-------------
+    // Asignar el nombre del elemento a buscar a una variable
+    let elementName = nombre;
+    // Obtener todos los elementos que contienen el texto
+    const elements = document.querySelectorAll('.flex-1.text-ellipsis.max-h-5.overflow-hidden.break-all.relative');
+    // Iterar sobre los elementos para encontrar el que coincide con el nombre
+    let targetElement;
+    elements.forEach(element => {
+      if (element.textContent.trim() === elementName) {
+        targetElement = element;
+      }
+    });
+    // Hacer clic en el elemento seleccionado
+    if (targetElement) {
+      targetElement.click();
+    }
+  }
+  /*
+#clickButton() {
+  const button = document.querySelector('a.flex');
+  button.click();
+
+} */
+  /*
+  #obtenerNombre() {
+    const pageTitle = document.title;
+    return pageTitle;
+  } */
+
+}
+
 console.log("content-script.js");
 //variables
 var continuar = true;
-var ProfundidadConfigurada= 1;
+var ProfundidadConfigurada = 1;
+const gpt = new ChatGPT();
 
 //listener
 chrome.runtime.onMessage.addListener(function (mensaje, sender, respuesta) {
   if (mensaje.tipo === "informacion") {
-    borrarBaseDeDatosDeSoluciones();
-    borrarBaseDeDatosDeTareas();
-    
+    baseDeDatos1.limpiarBaseDeDatos();
+    baseDeDatos2.limpiarBaseDeDatos();
+
     const nombre = mensaje.datos.nombre; // Obtener el valor del primer campo de consulta
     const objetivo = mensaje.datos.objetivo; // Obtener el valor del segundo campo de consulta
     const numero = mensaje.datos.numero; // Obtener el valor del campo numérico deslizante
-    ProfundidadConfigurada=numero;
+    ProfundidadConfigurada = numero;
     principal(nombre, objetivo);
   }
 });
@@ -50,13 +350,14 @@ async function principal(nombre, objetivo) {
 
   let texto = "Nombre: " + nombre + '\n' + "Objetivo: " + objetivo;
   enviarTexto(texto, "blue");
+
   let tareas = await agenteCreacionDeTareas(nombre, objetivo); //aqui recibe un array de string que contienen las tareas creadas por el agente
 }
 async function agenteCreacionDeTareas(nombre, objetivo) {
   if (continuar) {
 
     let mensaje = "Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres " + nombre + " y el objetivo es " + objetivo + ".   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp";
-    var respuesta = await enviarMensaje(mensaje, "creacion");
+    var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
 
     // Procesar tareas para convertila en un array de tareas
     const arrayTareas = respuesta.split("\n");
@@ -79,7 +380,7 @@ async function agenteCreacionDeTareas(nombre, objetivo) {
     console.log("nombre: " + nombre);
 
 
-    GuardarEnMemoria(0, nombre, objetivo);
+    baseDeDatos1.GuardarEnMemoria(0, nombre, objetivo);
 
     pilaDeTareas(0, tareasArreglo, false);
 
@@ -92,42 +393,41 @@ async function pilaDeTareas(profundidad, tareasArreglo, ordenado) {
 
   //guarda en la cola de tareas
   for (let i = 0; i < tareasArreglo.length; i++) {
-    guardarTarea(profundidad, tareasArreglo[i]);
+    baseDeDatos2.guardarTarea(profundidad, tareasArreglo[i]);
   }
   // imprimir tareas sin solucion
   // Llamada a la función para obtener las tareas y luego imprimirlas
-  obtenerTareas().then(function (tareas) {
+  tareas= await baseDeDatos2.obtenerTodasLasTareas()
     // hacer algo con las tareas
     console.log('Tareas de la pila de tareas de la base de datos:', tareas);
-  }).catch(function (error) {
-    // manejar el error
-  });
+ 
 
-
-  let tareaAtratar = await borrarTareaEnTope();
+  let tareaAtratar = await baseDeDatos2.borrarTareaEnTope();
+  console.log("tarea a tratar" + tareaAtratar);
+  console.log(tareaAtratar.tarea);
 
   if (ordenado) {
     //   for (let i = 0; i < tareasArreglo.length; i++) {
     //   enviarTexto("Tarea agregada: " + tareasArreglo[i]);
     // }
-    agenteDeEjecucion(tareaAtratar.profundidad,tareaAtratar.tarea);
+    agenteDeEjecucion(tareaAtratar.profundidad, tareaAtratar.tarea);
   } else {
     for (let i = 0; i < tareasArreglo.length; i++) {
       enviarTexto("Tarea agregada: " + tareasArreglo[i], "green");
     }
-    agenteDeEjecucion(tareaAtratar.profundidad,tareaAtratar.tarea);    //este no deberia de estar aqui pero como no anda la priorizacion de tarea, estara aqui
+    agenteDeEjecucion(tareaAtratar.profundidad, tareaAtratar.tarea);    //este no deberia de estar aqui pero como no anda la priorizacion de tarea, estara aqui
     // agentePriorizacionDeTareas();  lo dejo comentado porque me anda mal la priorizacion de tarea
 
   }
 }
-async function agenteDeEjecucion(profundidad,tarea) {
+async function agenteDeEjecucion(profundidad, tarea) {
 
   if (continuar) {
-    
+
     console.log("entrando al agente de ejecucion de tareas");
 
     try {
-      let todasLasSoluciones = await obtenerTodasLasSoluciones();
+      let todasLasSoluciones = await baseDeDatos1.obtenerTodasLasSoluciones();
       if (!Array.isArray(todasLasSoluciones)) {
         throw new Error("obtenerTodasLasSoluciones no devuelve un array");
       }
@@ -140,11 +440,11 @@ async function agenteDeEjecucion(profundidad,tarea) {
       let soluciones = await encontrarTitulosSimilares(todasLasSoluciones, tarea);
 
       let mensaje = "  " + tarea + " ejecuta la tarea , en caso de no tener información suficiente dime como conseguirla  información:   " + soluciones + "";
-      var solucion = await enviarMensaje(mensaje, "ejecucion");
+      var solucion = await gpt.enviarMensaje(mensaje, "ejecucion");
       enviarTexto("Ejecutando tarea: " + tarea + " --> " + solucion, "orange");
-      
-      agenteCreacionDeTareas2(profundidad+1, tarea, solucion, soluciones);
-      
+
+      agenteCreacionDeTareas2(profundidad + 1, tarea, solucion, soluciones);
+
     } catch (error) {
       console.error(error);
     }
@@ -155,28 +455,29 @@ async function agenteDeEjecucion(profundidad,tarea) {
 
 
 async function agenteCreacionDeTareas2(profundidad, tarea, solucion, informacion) {
-  let tareasArreglo=[];
-  if (profundidad<=ProfundidadConfigurada){
+  let tareasArreglo = [];
+  if (profundidad <= ProfundidadConfigurada) {
 
-    enviarTexto("La profundidad de esta tarea es " + profundidad + "que es menor a " + ProfundidadConfigurada,"red");
+    enviarTexto("La profundidad de esta tarea es " + profundidad + " que es menor o igual a " + ProfundidadConfigurada, "red");
     let mensaje = "Conociendo esta tarea \n \n " + tarea + "\n información:  \n" + informacion + "  \n su ejecución \n " + solucion + " \n en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo  La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n La respuesta tiene que tener este formato  Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ";
-  var respuesta = await enviarMensaje(mensaje, "creacion");
+    var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
 
-  // const tareasArreglo = respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
-  /*
-  enviarTexto("Tarea agregada 1: " + tareasArreglo[0]);
-  enviarTexto("Tarea agregada 2:" + tareasArreglo[1]);
-  enviarTexto("Tarea agregada 3: " + tareasArreglo[2]);
-  */
-  //console.log("Tarea agregada 1: " + tareasArreglo[0]);
-  //console.log("Tarea agregada 2:" + tareasArreglo[1]);
-  //console.log("Tarea agregada 3: " + tareasArreglo[2]);
+    // const tareasArreglo = respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
+    /*
+    enviarTexto("Tarea agregada 1: " + tareasArreglo[0]);
+    enviarTexto("Tarea agregada 2:" + tareasArreglo[1]);
+    enviarTexto("Tarea agregada 3: " + tareasArreglo[2]);
+    */
+    //console.log("Tarea agregada 1: " + tareasArreglo[0]);
+    //console.log("Tarea agregada 2:" + tareasArreglo[1]);
+    //console.log("Tarea agregada 3: " + tareasArreglo[2]);
 
-  let nuevaTarea = respuesta.replace("Tarea: ", "");
-   tareasArreglo = [nuevaTarea];
+    let nuevaTarea = respuesta.replace("Tarea: ", "");
+    tareasArreglo = [nuevaTarea];
   } else {
-    enviarTexto("La profundidad de esta tarea es " + profundidad + "que es mayor a " + ProfundidadConfigurada,"red");}
-  GuardarEnMemoria(profundidad, tarea, solucion);
+    enviarTexto("La profundidad de esta tarea es " + profundidad + "que es mayor a " + ProfundidadConfigurada, "red");
+  }
+  baseDeDatos1.GuardarEnMemoria(profundidad, tarea, solucion);
 
   pilaDeTareas(profundidad, tareasArreglo, false);
 
@@ -186,11 +487,11 @@ async function agenteCreacionDeTareas2(profundidad, tarea, solucion, informacion
 
 async function agentePriorizacionDeTareas() {
 
-  let cadena = await obtenerTodasLasTareas()
+  let cadena = await baseDeDatos2.obtenerTodasLasTareas()
 
   let mensaje = await "prioriza las tareas teniendo en cuenta su prioridad y su correlatividad. sin agregar texto extra, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  " + cadena;
 
-  var respuesta = await enviarMensaje(mensaje, "prioridad");
+  var respuesta = await gpt.enviarMensaje(mensaje, "prioridad");
   // Procesar tareas para convertila en un array de tareas
   const arrayTareas = respuesta.split("\n");
   const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
@@ -198,7 +499,7 @@ async function agentePriorizacionDeTareas() {
 
 
   //console.log(tareasArreglo);
-  borrarBaseDeDatosDeTareas();
+  baseDeDatos2.limpiarBaseDeDatos();
   pilaDeTareas(tareasArreglo, true);
 
 
@@ -250,308 +551,4 @@ function calcularPuntajeSimilitud(cadena1, cadena2) {
   const puntaje = new Set(str1.split('')).size + new Set(str2.split('')).size - new Set([...str1, ...str2]).size;
 
   return puntaje;
-}
-
-
-
-
-//funciones que interactuan con la base de datos de forma directa
-function abrirBaseDeDatos(nombre, esquema) {
-  const request = indexedDB.open(nombre);
-  request.onupgradeneeded = function (event) {
-    const db = event.target.result;
-    esquema(db);
-  }
-  return request;
-}
-function leerDatos(baseDeDatos, nombreObjectStore, callback) {
-  const transaction = baseDeDatos.transaction([nombreObjectStore], 'readonly');
-  const objectStore = transaction.objectStore(nombreObjectStore);
-  const cursor = objectStore.openCursor();
-  const datos = [];
-  cursor.onsuccess = function (event) {
-    const cursor = event.target.result;
-    if (cursor) {
-      datos.push(cursor.value);
-      cursor.continue();
-    } else {
-      callback(datos);
-    }
-  };
-}
-function guardarDatos(baseDeDatos, nombreObjectStore, datos) {
-  const transaction = baseDeDatos.transaction([nombreObjectStore], 'readwrite');
-  const objectStore = transaction.objectStore(nombreObjectStore);
-  objectStore.add(datos);
-  transaction.oncomplete = function () {
-    console.log('Datos guardados con éxito');
-  };
-  transaction.onerror = function () {
-    console.log('Error al guardar los datos');
-  };
-}
-
-// Abrir la base de datos de profundidad,tarea,solucion
-const db1 = abrirBaseDeDatos('miBaseDeDatos', function (db) {
-  const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement: true });
-  objectStore.createIndex('profundidad', 'profundidad', { unique: false });
-  objectStore.createIndex('soluciones', 'soluciones', { unique: false });
-});
-function obtenerTareasSolucion(callback) {
-  leerDatos(db1.result, 'tareas', callback);
-}
-async function obtenerTodasLasSoluciones() {
-  try {
-    const soluciones = await obtenersoluciones();
-    const solucionesStrings = soluciones.map(solucion => solucion.toString());
-    return solucionesStrings;
-  } catch (error) {
-    console.error('Error al obtener las soluciones: ', error);
-  }
-}
-
-function obtenersoluciones() {
-  return new Promise((resolve, reject) => {
-    const request = abrirBaseDeDatos('miBaseDeDatos', function (db) { });
-    request.onsuccess = function (event) {
-      leerDatos(event.target.result, 'tareas', function (tareas) {
-        const soluciones = tareas.map(function (tarea) {
-          return tarea.soluciones;
-        });
-        resolve(soluciones);
-      });
-    };
-    request.onerror = function (event) {
-      reject(event.target.error);
-    };
-  });
-}
-function guardarSolucion(profundidad, tarea, soluciones) {
-  guardarDatos(db1.result, 'tareas', { profundidad: profundidad, tarea: tarea, soluciones: soluciones });
-}
-function borrarBaseDeDatosDeSoluciones() {
-  const request = indexedDB.open('miBaseDeDatos');
-  request.onsuccess = function (event) {
-    const db = event.target.result;
-    const transaction = db.transaction(['tareas'], 'readwrite');
-    const objectStore = transaction.objectStore('tareas');
-    const requestDelete = objectStore.clear();
-    requestDelete.onsuccess = function () {
-      console.log('Base de datos borrada con éxito');
-    };
-    requestDelete.onerror = function (event) {
-      console.error('Error al borrar la base de datos', event.target.error);
-    };
-  };
-
-  request.onupgradeneeded = function (event) {
-    // Aquí se puede actualizar el esquema de la base de datos si se requiere
-  };
-
-  request.onerror = function (event) {
-    console.error('Error al abrir la base de datos', event.target.error);
-  };
-}
-function GuardarEnMemoria(profundidad, objetivo, nombre) {
-  //guarda en memoria
-  guardarSolucion(profundidad, objetivo, nombre);
-
-  //imprimir tareas soluciones
-  obtenerTareasSolucion(function (tareas) {
-    console.log("imprimiendo las tareas que estan en la base de datos:");
-    console.log(JSON.stringify(tareas));
-  });
-}
-
-// Abrir la base de datos de profundidad,tarea
-const db2 = abrirBaseDeDatos('miBaseDeDatosSoloTareas', function (db) {
-  const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement: true });
-  objectStore.createIndex('profundidad', 'profundidad', { unique: false });
-});
-
-function obtenerTareas() {
-  return new Promise(function (resolve, reject) {
-    leerDatos(db2.result, 'tareas', function (tareas) {
-      resolve(tareas);
-    });
-  });
-}
-function guardarTarea(profundidad, tarea) {
-  guardarDatos(db2.result, 'tareas', { profundidad: profundidad, tarea: tarea });
-}
-
-function borrarBaseDeDatosDeTareas() {
-  const request = indexedDB.open('miBaseDeDatosSoloTareas');
-  request.onsuccess = function (event) {
-    const db = event.target.result;
-    const transaction = db.transaction(['tareas'], 'readwrite');
-    const objectStore = transaction.objectStore('tareas');
-    const requestDelete = objectStore.clear();
-    requestDelete.onsuccess = function () {
-      console.log('Base de datos de solo tarea borrada con éxito');
-    };
-    requestDelete.onerror = function (event) {
-      console.error('Error al borrar la base de datos de solo tarea', event.target.error);
-    };
-  };
-
-  request.onupgradeneeded = function (event) {
-    // Aquí se puede actualizar el esquema de la base de datos si se requiere
-  };
-
-  request.onerror = function (event) {
-    console.error('Error al abrir la base de datos', event.target.error);
-  };
-}
-
-function obtenerTodasLasTareas() {
-  return new Promise(function (resolve, reject) {
-    var transaccion = db2.result.transaction(['tareas'], 'readonly');
-    var store = transaccion.objectStore('tareas');
-    var cursor = store.openCursor();
-    var tareas = [];
-
-    cursor.onsuccess = function (event) {
-      var cursor = event.target.result;
-      if (cursor) {
-        tareas.push(cursor.value.descripcion);
-        cursor.continue();
-      } else {
-        resolve(tareas);
-      }
-    };
-
-    cursor.onerror = function (event) {
-      reject(event.target.error);
-    };
-  });
-}
-function borrarTareaEnTope() {
-  return new Promise(function(resolve, reject) {
-    obtenerTareas().then(function (tareas) {
-      if (tareas.length > 0) {
-        // obtener tarea en tope
-        const tareaEnTope = tareas[0];
-        // eliminar tarea en tope de la base de datos
-        eliminarDatos(db2.result, 'tareas', tareaEnTope.id, function () {
-          console.log('Tarea en tope eliminada con éxito');
-          resolve(tareaEnTope);
-        });
-      } else {
-        console.log('No hay tareas en la pila');
-        reject('No hay tareas en la pila');
-      }
-    }).catch(function (error) {
-      console.error('Error al obtener las tareas: ', error);
-      reject(error);
-    });
-  });
-}
-
-function eliminarDatos(db, storeName, id, callback) {
-  const transaction = db.transaction([storeName], 'readwrite');
-  const store = transaction.objectStore(storeName);
-  const request = store.delete(id);
-
-  request.onerror = function (event) {
-    console.error('Error al eliminar los datos: ', event.target.error);
-  };
-
-  request.onsuccess = function (event) {
-    callback();
-  };
-}
-
-
-
-//funciones que interactuan con la pagina de forma directa
-function puedoContinuar() {
-  if (document.querySelector('.text-2xl span:first-child') !== null) {
-    console.log("espera"); // El elemento existe
-    return false;
-  } else {
-    //console.log("puedoContinuar dice " +  true); // El elemento no existe
-    return true;
-  }
-}
-function clickButton() {
-  const button = document.querySelector('a.flex');
-  button.click();
-
-}
-function seleccionarChat(nombre) {
-  // codigo para seleccionar un chat segun su nombre-------------
-  // Asignar el nombre del elemento a buscar a una variable
-  let elementName = nombre;
-  // Obtener todos los elementos que contienen el texto
-  const elements = document.querySelectorAll('.flex-1.text-ellipsis.max-h-5.overflow-hidden.break-all.relative');
-  // Iterar sobre los elementos para encontrar el que coincide con el nombre
-  let targetElement;
-  elements.forEach(element => {
-    if (element.textContent.trim() === elementName) {
-      targetElement = element;
-    }
-  });
-  // Hacer clic en el elemento seleccionado
-  if (targetElement) {
-    targetElement.click();
-  }
-}
-function obtenerNombre() {
-  const pageTitle = document.title;
-  return pageTitle;
-}
-async function enviarMensaje(mensaje, chat) {
-  await new Promise((resolve) => {
-    //  clickButton();
-    seleccionarChat(chat);
-    setTimeout(() => {
-      resolve();
-    }, 3000);
-  });
-
-  // código que se ejecutará después de 3 segundos
-
-  // console.log("mensaje " + mensaje);
-  // Obtener el cuadro de texto
-
-  const textarea = document.querySelector('textarea[placeholder="Send a message..."]');
-  if (textarea !== null) {
-    // Establecer el valor del cuadro de texto
-    textarea.value = mensaje;
-
-    // Crear un evento keydown para simular presionar la tecla Enter
-    const event = new KeyboardEvent('keydown', {
-      bubbles: true,
-      cancelable: true,
-      keyCode: 13,
-    });
-
-    // Desencadenar el evento keydown
-    textarea.dispatchEvent(event);
-
-
-    // Esperar a que puedoContinuar() devuelva true
-    await new Promise((resolve) => {
-      const checkContinuar = setInterval(() => {
-        if (puedoContinuar()) {
-          clearInterval(checkContinuar);
-          resolve();
-        }
-      }, 100);
-    });
-
-    const elementos = document.querySelectorAll('.prose');
-    const ultimoElemento = elementos[elementos.length - 1];
-    const texto = ultimoElemento.textContent.trim();
-    //console.log(texto);
-    // Enviar mensaje a popup.js
-    var respuesta = texto;
-    chrome.runtime.sendMessage({ tipo: "respuesta", datos: { valor: respuesta } });
-    // console.log("respuesta:  " + respuesta );
-    return texto;
-  } else {
-    console.log('El cuadro de texto no existe en la página.');
-  }
-
 }
