@@ -1,165 +1,3 @@
-
-class GestionBaseDeDatos {
-
-  //funciones que interactuan con la base de datos de forma directa
-  abrirBaseDeDatos(nombre, esquema) {
-    const request = indexedDB.open(nombre);
-    request.onupgradeneeded = function (event) {
-      const db = event.target.result;
-      esquema(db);
-    }
-    request.onerror = function (event) {
-      const errorMessage = "Error al abrir la base de datos: " + event.target.error.message;
-      console.error(errorMessage);
-      alert(errorMessage);
-    };
-    return request;
-  }
-  leerDatos(baseDeDatos, nombreObjectStore, callback) {
-    const transaction = baseDeDatos.transaction([nombreObjectStore], 'readonly');
-    const objectStore = transaction.objectStore(nombreObjectStore);
-    const cursor = objectStore.openCursor();
-    const datos = [];
-    cursor.onsuccess = function (event) {
-      const cursor = event.target.result;
-      if (cursor) {
-        datos.push(cursor.value);
-        cursor.continue();
-      } else {
-        callback(datos);
-      }
-    };
-  }
-  guardarDatos(baseDeDatos, nombreObjectStore, datos) {
-    const transaction = baseDeDatos.transaction([nombreObjectStore], 'readwrite');
-    const objectStore = transaction.objectStore(nombreObjectStore);
-    objectStore.add(datos);
-    transaction.oncomplete = function () {
-      console.log('Datos guardados con éxito');
-    };
-    transaction.onerror = function () {
-      console.log('Error al guardar los datos');
-    };
-  }
-}
-const gestor = new GestionBaseDeDatos();
-
-
-
-
-
-class BaseDeDatosTarea {
-  constructor(nombre, esquema) {
-    this.db2 = gestor.abrirBaseDeDatos(nombre, esquema);
-  }
-  guardarTarea(profundidad, tarea) {
-    gestor.guardarDatos(this.db2.result, 'tareas', { profundidad: profundidad, tarea: tarea });
-  }
-
-  borrarBaseDeDatosDeTareas() {
-    const request = indexedDB.open('miBaseDeDatosSoloTareas');
-    request.onsuccess = function (event) {
-      const db = event.target.result;
-      const transaction = db.transaction(['tareas'], 'readwrite');
-      const objectStore = transaction.objectStore('tareas');
-      const requestDelete = objectStore.clear();
-      requestDelete.onsuccess = function () {
-        console.log('Base de datos de solo tarea borrada con éxito');
-      };
-      requestDelete.onerror = function (event) {
-        console.error('Error al borrar la base de datos de solo tarea', event.target.error);
-      };
-    };
-
-    request.onupgradeneeded = function (event) {
-      // Aquí se puede actualizar el esquema de la base de datos si se requiere
-    };
-
-    request.onerror = function (event) {
-      console.error('Error al abrir la base de datos', event.target.error);
-    };
-  }
-
-  obtenerTodasLasTareas() {
-    return new Promise(function (resolve, reject) {
-      var transaccion = this.db2.result.transaction(['tareas'], 'readonly');
-      var store = transaccion.objectStore('tareas');
-      var cursor = store.openCursor();
-      var tareas = [];
-
-      cursor.onsuccess = function (event) {
-        var cursor = event.target.result;
-        if (cursor) {
-          tareas.push(cursor.value.descripcion);
-          cursor.continue();
-        } else {
-          resolve(tareas);
-        }
-      };
-
-      cursor.onerror = function (event) {
-        reject(event.target.error);
-      };
-    });
-  }
-  obtenerTareas() {
-    const instancia = this;
-    return new Promise(function (resolve, reject) {
-      gestor.leerDatos(instancia.db2.result, 'tareas', function (tareas) {
-        resolve(tareas);
-      });
-    });
-  }
-  borrarTareaEnTope() {
-    const instancia = this;
-    return new Promise(function (resolve, reject) {
-      instancia.obtenerTareas().then(function (tareas) {
-        if (tareas.length > 0) {
-          // obtener tarea en tope
-          const tareaEnTope = tareas[0];
-          // eliminar tarea en tope de la base de datos
-          instancia.eliminarDatos(instancia.db2.result, 'tareas', tareaEnTope.id, function () {
-            console.log('Tarea en tope eliminada con éxito');
-            resolve(tareaEnTope);
-          });
-        } else {
-          console.log('No hay tareas en la pila');
-          reject('No hay tareas en la pila');
-        }
-      }).catch(function (error) {
-        console.error('Error al obtener las tareas: ', error);
-        reject(error);
-      });
-    });
-  }
-
-  eliminarDatos(db, storeName, id, callback) {
-    const transaction = db.transaction([storeName], 'readwrite');
-    const store = transaction.objectStore(storeName);
-    const request = store.delete(id);
-
-    request.onerror = function (event) {
-      console.error('Error al eliminar los datos: ', event.target.error);
-    };
-
-    request.onsuccess = function (event) {
-      callback();
-    };
-  }
-
-}
-// Abrir la base de datos de profundidad,tarea
-const BdTarea = new BaseDeDatosTarea('miBaseDeDatosSoloTareas', function (db) {
-  const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement: true });
-  objectStore.createIndex('profundidad', 'profundidad', { unique: false });
-});
-
-
-
-
-
-
-
 class MemoryDatabase {
   constructor() {
     this.data = {};
@@ -170,6 +8,14 @@ class MemoryDatabase {
     const id = ++this.lastId;
     this.data[id] = obj;
     return id;
+  }
+  pop() {
+    const allValues = Object.values(this.data);
+    const lastValue = allValues.pop();
+    const lastId = Object.keys(this.data).pop();
+    delete this.data[lastId];
+    this.lastId = lastId - 1;
+    return lastValue;
   }
 
   getAll() {
@@ -193,40 +39,58 @@ class MemoryDatabase {
 
 
 
+class BaseDeDatosTarea {
+  constructor(nombre, esquema) {
+    this.db =  new MemoryDatabase();
+  }
+  guardarTarea(profundidad, tarea) {
+    this.db.add({ profundidad: profundidad, tarea: tarea, soluciones: "" });
+  }
 
+  borrarBaseDeDatosDeTareas() {
+    this.db.clear();
+  }
 
+  obtenerTodasLasTareas() {
+    let todos = this.db.getAll();
+    const solucionesArray = todos.map(todo => todo.tarea);
+    return solucionesArray;
 
+  }
+  obtenerTareas() {
+    this.obtenerTodasLasTareas()
+  }
+  borrarTareaEnTope() {
+    return this.db.pop();
+  }
 
-
-
-
-
-
+}
+// Abrir la base de datos de profundidad,tarea
+const BdTarea = new BaseDeDatosTarea();
 
 
 
 
   class BaseDeDatosTareaSolucion {
-
      constructor() {
-      this.db1 =  new MemoryDatabase();
+      this.db =  new MemoryDatabase();
     }
-  
-
+    guardarSolucion(profundidad, tarea, soluciones) {
+      this.db.add({ profundidad: profundidad, tarea: tarea, soluciones: soluciones });
+    } 
+    borrarBaseDeDatosDeSoluciones() {
+      this.db.clear();
+    }
     async obtenerTodasLasSoluciones() {
-      let todos = this.db1.getAll();
+      let todos = this.db.getAll();
       const solucionesArray = todos.map(todo => todo.soluciones);
       return solucionesArray;
     }
   
-     guardarSolucion(profundidad, tarea, soluciones) {
-      this.db1.add({ profundidad: profundidad, tarea: tarea, soluciones: soluciones });
-    } 
+
 
     
-    borrarBaseDeDatosDeSoluciones() {
-      this.db1.clear();
-    }
+
     guardarEnMemoria(profundidad, objetivo, nombre) {
       //guarda en memoria
       this.guardarSolucion(profundidad, objetivo, nombre);
@@ -240,25 +104,12 @@ class MemoryDatabase {
   
   }
 
-// 'miBaseDeDatos2s', ["profundidad","tareas","soluciones"]
-
   const BdTareaSolucion = new BaseDeDatosTareaSolucion();
   
 
-  BdTareaSolucion.guardarSolucion(1, "hola coomo estas? esto es una tarea", "solucion de la vida") ;
-  //BdTareaSolucion.guardarEnMemoria(profundidad, objetivo, nombre)
-  //BdTareaSolucion.obtenerTodasLasSoluciones()
-  //BdTareaSolucion.borrarBaseDeDatosDeSoluciones()
 
 
-
-
-
-
-
-
-
-
+  
 
 class ChatGPT {
 
@@ -530,12 +381,9 @@ async function pilaDeTareas(profundidad, tareasArreglo, ordenado) {
 */
 
 
-  BdTarea.obtenerTareas().then(function (tareas) {
-    // hacer algo con las tareas
-    console.log('Tareas de la pila de tareas de la base de datos:', tareas);
-  }).catch(function (error) {
-    // manejar el error
-  });
+
+    console.log('Tareas de la pila de tareas de la base de datos:', BdTarea.obtenerTareas());
+
 
 
 
