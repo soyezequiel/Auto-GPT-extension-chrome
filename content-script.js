@@ -19,6 +19,7 @@ class MemoryDatabase {
   }
 
   getAll() {
+    
     return Object.values(this.data);
   }
 
@@ -43,22 +44,22 @@ class BaseDeDatosTarea {
   constructor(nombre, esquema) {
     this.db =  new MemoryDatabase();
   }
-  guardarTarea(profundidad, tarea) {
-    this.db.add({ profundidad: profundidad, tarea: tarea, soluciones: "" });
+  guardarTarea(tarea) {
+    this.db.add(tarea);
   }
 
   borrarBaseDeDatosDeTareas() {
     this.db.clear();
   }
 
-  obtenerTodasLasTareas() {
+  obtenerArrayDeStringTodasLasTareas() {
     let todos = this.db.getAll();
     const solucionesArray = todos.map(todo => todo.tarea);
     return solucionesArray;
 
   }
-  obtenerTareas() {
-    this.obtenerTodasLasTareas()
+  obtenerStringTareas() {
+    return this.obtenerArrayDeStringTodasLasTareas().join(', ');
   }
   borrarTareaEnTope() {
     return this.db.pop();
@@ -75,41 +76,89 @@ const BdTarea = new BaseDeDatosTarea();
      constructor() {
       this.db =  new MemoryDatabase();
     }
-    guardarSolucion(profundidad, tarea, soluciones) {
-      this.db.add({ profundidad: profundidad, tarea: tarea, soluciones: soluciones });
+    guardarSolucion(tarea) {
+      this.db.add(tarea);
     } 
     borrarBaseDeDatosDeSoluciones() {
       this.db.clear();
     }
-    async obtenerTodasLasSoluciones() {
-      let todos = this.db.getAll();
-      const solucionesArray = todos.map(todo => todo.soluciones);
+    async obtenerarrayDeStringTodasLasSoluciones() {
+      let todos = await this.db.getAll();
+      const solucionesArray = todos.map(todo => todo.solucion);
+
       return solucionesArray;
     }
+
+    guardarEnMemoria(parTareaSolucion) {
+      //guarda en memoria
+      this.guardarSolucion(parTareaSolucion);
   
+      //imprimir tareas soluciones
+      let soluciones=this.obtenerarrayDeStringTodasLasSoluciones();
+        console.log("imprimiendo las tareas que estan en la base de datos: " + soluciones);
+    
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     
 
-    guardarEnMemoria(profundidad, objetivo, nombre) {
-      //guarda en memoria
-      this.guardarSolucion(profundidad, objetivo, nombre);
-  
-      //imprimir tareas soluciones
-      let soluciones=this.obtenerTodasLasSoluciones();
-        console.log("imprimiendo las tareas que estan en la base de datos: " + soluciones);
-        
-      
-    }
-  
-  }
 
   const BdTareaSolucion = new BaseDeDatosTareaSolucion();
   
 
 
+  class TareaSolucion{
+      constructor(profundidad,tarea,solucion){
+        this.profundidad=profundidad;
+        this.tarea=tarea;
+        this.solucion=solucion;
+      }
+  }
 
-  
 
 class ChatGPT {
 
@@ -207,6 +256,7 @@ class ChatGPT {
   } */
 
 }
+
 console.log("content-script.js");
 //variables
 var continuar = true;
@@ -216,13 +266,14 @@ const gpt = new ChatGPT();
 //listener
 chrome.runtime.onMessage.addListener(function (mensaje, sender, respuesta) {
   if (mensaje.tipo === "informacion") {
-    //  baseDeDatos1.limpiarBaseDeDatos();
-    //  baseDeDatos2.limpiarBaseDeDatos();
-    BdTarea.borrarBaseDeDatosDeTareas();
-   // BdTareaSolucion.borrarBaseDeDatosDeSoluciones();
 
+    BdTarea.borrarBaseDeDatosDeTareas();
+    BdTareaSolucion.borrarBaseDeDatosDeSoluciones();
+    
     const nombre = mensaje.datos.nombre; // Obtener el valor del primer campo de consulta
     const objetivo = mensaje.datos.objetivo; // Obtener el valor del segundo campo de consulta
+  
+
     const numero = mensaje.datos.numero; // Obtener el valor del campo numérico deslizante
     ProfundidadConfigurada = numero;
     principal(nombre, objetivo);
@@ -323,6 +374,7 @@ async function principal(nombre, objetivo) {
   let texto = "Nombre: " + nombre + '\n' + "Objetivo: " + objetivo;
   enviarTexto(texto, "blue");
 
+  
   let tareas = await agenteCreacionDeTareas(nombre, objetivo); //aqui recibe un array de string que contienen las tareas creadas por el agente
 }
 async function agenteCreacionDeTareas(nombre, objetivo) {
@@ -335,17 +387,13 @@ async function agenteCreacionDeTareas(nombre, objetivo) {
     const arrayTareas = respuesta.split("\n");
     const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
     const tareasArreglo = tareasArregloConTarea.map(tarea => tarea.replace(/^Tarea\d+: /, ''));
+    let arregloDePar = [];
+    for (let i = 0; i < tareasArreglo.length; i++) {
+      console.log("tarea ----------->" + tareasArreglo[i]);
+      arregloDePar[i]=new TareaSolucion(0,tareasArreglo[i],"");
+    }
 
 
-    //console.log("llegue");
-    /*
-    enviarTexto("Tarea agregada 1: " + tareasArreglo[0]);
-    enviarTexto("Tarea agregada 2:" + tareasArreglo[1]);
-    enviarTexto("Tarea agregada 3: " + tareasArreglo[2]);
-    */
-    //console.log("Tarea agregada 1: " + tareasArreglo[0]);
-    //console.log("Tarea agregada 2:" + tareasArreglo[1]);
-    //console.log("Tarea agregada 3: " + tareasArreglo[2]);
 
 
     console.log("objetivo: " + objetivo);
@@ -353,85 +401,73 @@ async function agenteCreacionDeTareas(nombre, objetivo) {
 
 
     //baseDeDatos1.guardarEnMemoria(0, nombre, objetivo);
-    BdTareaSolucion.guardarEnMemoria(0, nombre, objetivo);
+    var objsolucion=new TareaSolucion(0,nombre,objetivo);
+    BdTareaSolucion.guardarEnMemoria(objsolucion);
 
-    pilaDeTareas(0, tareasArreglo, false);
+    pilaDeTareas(arregloDePar,true);
 
     //return tareasArreglo;
 
   }
 
 }
-async function pilaDeTareas(profundidad, tareasArreglo, ordenado) {
+async function pilaDeTareas(arregloDePar,ordenado) {
   console.log("Entrando a la pila de tareas");
   //guarda en la cola de tareas
   let tareaActual;
-  for (let i = 0; i < tareasArreglo.length; i++) {
-    console.log("tarea ----------->" + tareasArreglo[i]);
-    tareaActual = tareasArreglo[i];
-    //baseDeDatos2.guardarTarea(profundidad, tareaActual);
-    BdTarea.guardarTarea(profundidad, tareaActual);
+  for (let i = 0; i < arregloDePar.length; i++) {
+    console.log("tarea ----------->" + arregloDePar[i].tarea);
+    BdTarea.guardarTarea(arregloDePar[i]);
   }
-  /*
-  // imprimir tareas sin solucion
-  // Llamada a la función para obtener las tareas y luego imprimirlas
-  tareas = await baseDeDatos2.obtenerTodasLasTareas()
-  // hacer algo con las tareas
-  console.log('Tareas de la pila de tareas de la base de datos:', tareas);
-*/
+
+  let string=BdTarea.obtenerStringTareas()
+
+  console.log('Tareas de la pila de tareas de la base de datos:', await string);
 
 
 
-    console.log('Tareas de la pila de tareas de la base de datos:', BdTarea.obtenerTareas());
-
-
-
-
-
-  //let tareaAtratar = await baseDeDatos2.borrarTareaEnTope();
-  let tareaAtratar = await BdTarea.borrarTareaEnTope();
-  console.log("tarea a tratar" + tareaAtratar);
-  console.log(tareaAtratar.tarea);
+  let parTareaAtratar = await BdTarea.borrarTareaEnTope();
+  console.log("tarea a tratar" + parTareaAtratar.tarea);
 
   if (ordenado) {
-    //   for (let i = 0; i < tareasArreglo.length; i++) {
-    //   enviarTexto("Tarea agregada: " + tareasArreglo[i]);
-    // }
-    agenteDeEjecucion(tareaAtratar.profundidad, tareaAtratar.tarea);
+
+    agenteDeEjecucion(parTareaAtratar);
   } else {
-    for (let i = 0; i < tareasArreglo.length; i++) {
-      enviarTexto("Tarea agregada: " + tareasArreglo[i], "green");
+    for (let i = 0; i < arregloDePar.length; i++) {
+      enviarTexto("Tarea agregada: " + arregloDePar[i].tarea, "green");
     }
-    agenteDeEjecucion(tareaAtratar.profundidad, tareaAtratar.tarea);    //este no deberia de estar aqui pero como no anda la priorizacion de tarea, estara aqui
+    agenteDeEjecucion(parTareaAtratar);    //este no deberia de estar aqui pero como no anda la priorizacion de tarea, estara aqui
     // agentePriorizacionDeTareas();  lo dejo comentado porque me anda mal la priorizacion de tarea
 
   }
 }
-async function agenteDeEjecucion(profundidad, tarea) {
+async function agenteDeEjecucion(parTareaAtratar) {
 
   if (continuar) {
 
     console.log("entrando al agente de ejecucion de tareas");
 
     try {
-      // let todasLasSoluciones = await baseDeDatos1.obtenerTodasLasSoluciones();
-      let todasLasSoluciones = await BdTareaSolucion.obtenerTodasLasSoluciones();
+
+      let todasLasSoluciones = await BdTareaSolucion.obtenerarrayDeStringTodasLasSoluciones();
       if (!Array.isArray(todasLasSoluciones)) {
-        throw new Error("obtenerTodasLasSoluciones no devuelve un array");
+        throw new Error("obtenerarrayDeStringTodasLasSoluciones no devuelve un array");
       }
       console.log("Todas las soluciones de la base de datos :  " + todasLasSoluciones);
 
-      if (typeof tarea !== "string") {
+      if (typeof parTareaAtratar.tarea !== "string") {
         throw new Error("tarea no es una cadena");
       }
 
-      let soluciones = await encontrarTitulosSimilares(todasLasSoluciones, tarea);
+      let contexto = await encontrarTitulosSimilares(todasLasSoluciones, parTareaAtratar.tarea);
 
-      let mensaje = "  " + tarea + " ejecuta la tarea , en caso de no tener información suficiente dime como conseguirla  información:   " + soluciones + "";
+      let mensaje = "  " + parTareaAtratar.tarea + " ejecuta la tarea , en caso de no tener información suficiente dime como conseguirla  información:   " + contexto + "";
       var solucion = await gpt.enviarMensaje(mensaje, "ejecucion");
-      enviarTexto("Ejecutando tarea: " + tarea + " --> " + solucion, "orange");
+      enviarTexto("Ejecutando tarea: " + parTareaAtratar.tarea + " --> " + solucion, "orange");
+      parTareaAtratar.solucion=solucion;
 
-      agenteCreacionDeTareas2(profundidad + 1, tarea, solucion, soluciones);
+
+      agenteCreacionDeTareas2(parTareaAtratar, contexto);
 
     } catch (error) {
       console.error(error);
@@ -442,33 +478,25 @@ async function agenteDeEjecucion(profundidad, tarea) {
 
 
 
-async function agenteCreacionDeTareas2(profundidad, tarea, solucion, informacion) {
+async function agenteCreacionDeTareas2( parTareaSolucion, contexto) {
   let tareasArreglo = [];
-  if (profundidad <= ProfundidadConfigurada) {
+  if (parTareaSolucion.profundidad +1 <= ProfundidadConfigurada) {
 
-    enviarTexto("La profundidad de esta tarea es " + profundidad + " que es menor o igual a " + ProfundidadConfigurada, "red");
-    let mensaje = "Conociendo esta tarea \n \n " + tarea + "\n información:  \n" + informacion + "  \n su ejecución \n " + solucion + " \n en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo  La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n La respuesta tiene que tener este formato  Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ";
+    enviarTexto("La profundidad de esta tarea es " + parTareaSolucion.profundidad + " que es menor o igual a " + ProfundidadConfigurada, "red");
+    let mensaje = "Conociendo esta tarea \n \n " + parTareaSolucion.tarea + "\n información:  \n" + contexto + "  \n su ejecución \n " + parTareaSolucion.solucion + " \n en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo  La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n La respuesta tiene que tener este formato  Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ";
     var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
 
-    // const tareasArreglo = respuesta.match(/Tarea.*?(?=zzz|$)/gs).map(tarea => tarea.trim());
-    /*
-    enviarTexto("Tarea agregada 1: " + tareasArreglo[0]);
-    enviarTexto("Tarea agregada 2:" + tareasArreglo[1]);
-    enviarTexto("Tarea agregada 3: " + tareasArreglo[2]);
-    */
-    //console.log("Tarea agregada 1: " + tareasArreglo[0]);
-    //console.log("Tarea agregada 2:" + tareasArreglo[1]);
-    //console.log("Tarea agregada 3: " + tareasArreglo[2]);
 
     let nuevaTarea = respuesta.replace("Tarea: ", "");
-    tareasArreglo = [nuevaTarea];
+    let nuevoParTareaSolucion= new TareaSolucion(parTareaSolucion.profundidad+1,nuevaTarea,"");
+    arregloPar = [nuevoParTareaSolucion];
   } else {
-    enviarTexto("La profundidad de esta tarea es " + profundidad + "que es mayor a " + ProfundidadConfigurada, "red");
+    enviarTexto("La profundidad de esta tarea es " + parTareaSolucion.profundidad + "que es mayor a " + ProfundidadConfigurada, "red");
   }
   //baseDeDatos1.guardarEnMemoria(profundidad, tarea, solucion);
-  BdTareaSolucion.guardarEnMemoria(profundidad, tarea, solucion);
+  BdTareaSolucion.guardarEnMemoria(parTareaSolucion);
 
-  pilaDeTareas(profundidad, tareasArreglo, false);
+  pilaDeTareas(arregloPar, false);
 
   //return tareasArreglo;
 
@@ -476,8 +504,8 @@ async function agenteCreacionDeTareas2(profundidad, tarea, solucion, informacion
 
 async function agentePriorizacionDeTareas() {
 
-  // let cadena = await baseDeDatos2.obtenerTodasLasTareas()
-  let cadena = await BdTarea.obtenerTodasLasTareas()
+
+  let cadena = await BdTarea.obtenerArrayDeStringTodasLasTareas().join(", ");
 
   let mensaje = await "prioriza las tareas teniendo en cuenta su prioridad y su correlatividad. sin agregar texto extra, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  " + cadena;
 
@@ -487,11 +515,15 @@ async function agentePriorizacionDeTareas() {
   const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
   const tareasArreglo = tareasArregloConTarea.map(tarea => tarea.replace(/^Tarea\d+: /, ''));
 
-
+  var arregloDePar;
+  for (let i = 0; i < tareasArreglo.length; i++) {
+    console.log("tarea ----------->" + tareasArreglo[i]);
+    arregloDePar[i]=new TareaSolucion(0,tareasArreglo[i],"");
+  }
   //console.log(tareasArreglo);
   //baseDeDatos2.limpiarBaseDeDatos();
   BdTarea.borrarBaseDeDatosDeTareas();
-  pilaDeTareas(tareasArreglo, true);
+  pilaDeTareas(arregloDePar, true);
 
 
 }
