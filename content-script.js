@@ -43,8 +43,6 @@ class GestionBaseDeDatos {
 }
 const gestor = new GestionBaseDeDatos();
 
-
-
 class BaseDeDatosTareaSolucion {
 
   constructor(nombre, esquema) {
@@ -125,11 +123,6 @@ const BdTareaSolucion = new BaseDeDatosTareaSolucion('miBaseDeDatos', function (
   objectStore.createIndex('profundidad', 'profundidad', { unique: false });
   objectStore.createIndex('soluciones', 'soluciones', { unique: false });
 });
-
-
-
-
-
 
 class BaseDeDatosTarea {
   constructor(nombre, esquema) {
@@ -231,14 +224,11 @@ class BaseDeDatosTarea {
   }
 
 }
-
 // Abrir la base de datos de profundidad,tarea
 const BdTarea = new BaseDeDatosTarea('miBaseDeDatosSoloTareas', function (db) {
   const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement: true });
   objectStore.createIndex('profundidad', 'profundidad', { unique: false });
 });
-
-
 
 
 

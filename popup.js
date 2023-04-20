@@ -1,6 +1,9 @@
 //import { enviarMensaje } from './gpt.js';
 console.log("popup.js");
 const form = document.querySelector('#formulario');
+
+/* Este código agrega un listener al evento "submit" de un formulario y previene su comportamiento por defecto. Luego, se obtienen los valores de los campos "nombre", "objetivo" y "numero" del formulario usando el método "querySelector". Finalmente, se envía un mensaje a la pestaña activa del navegador usando la API de Chrome con los valores de los campos como datos del mensaje.
+*/
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const nombre = document.querySelector('#nombre').value; // Obtener el valor del primer campo de consulta
@@ -43,6 +46,7 @@ function mostrarTexto(texto, color) {
   document.getElementById("respuesta").appendChild(chat); // agregamos el elemento <div> al elemento con id "respuesta"
 }
 
+/*
 function guardarEnPDF() {
   // Obtener el contenido HTML de la página actual del popup
   let contenido = document.documentElement.outerHTML;
@@ -68,7 +72,7 @@ function guardarEnPDF() {
     URL.revokeObjectURL(url);
   }, 1000);
 }
-
+*/
 
 
 
