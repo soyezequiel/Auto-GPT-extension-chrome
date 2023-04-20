@@ -1,3 +1,4 @@
+
 class GestionBaseDeDatos {
 
   //funciones que interactuan con la base de datos de forma directa
@@ -42,85 +43,11 @@ class GestionBaseDeDatos {
   }
 }
 const gestor = new GestionBaseDeDatos();
-class BaseDeDatosTareaSolucion {
 
-  constructor(nombre, esquema) {
-    // Abrir la base de datos de profundidad,tarea,solucion
-    this.db1 = gestor.abrirBaseDeDatos(nombre, esquema);
-  }
 
-  obtenerTareasSolucion(callback) {
-    gestor.leerDatos(this.db1.result, 'tareas', callback);
-  }
-  async obtenerTodasLasSoluciones() {
-    try {
-      const soluciones = await this.obtenersoluciones();
-      const solucionesStrings = soluciones.map(solucion => solucion.toString());
-      return solucionesStrings;
-    } catch (error) {
-      console.error('Error al obtener las soluciones: ', error);
-    }
-  }
 
-  obtenersoluciones() {
-    return new Promise((resolve, reject) => {
-      const request = gestor.abrirBaseDeDatos('miBaseDeDatos', function (db) { });
-      request.onsuccess = function (event) {
-        gestor.leerDatos(event.target.result, 'tareas', function (tareas) {
-          const soluciones = tareas.map(function (tarea) {
-            return tarea.soluciones;
-          });
-          resolve(soluciones);
-        });
-      };
-      request.onerror = function (event) {
-        reject(event.target.error);
-      };
-    });
-  }
-  guardarSolucion(profundidad, tarea, soluciones) {
-    gestor.guardarDatos(this.db1.result, 'tareas', { profundidad: profundidad, tarea: tarea, soluciones: soluciones });
-  }
-  borrarBaseDeDatosDeSoluciones() {
-    const request = indexedDB.open('miBaseDeDatos');
-    request.onsuccess = function (event) {
-      const db = event.target.result;
-      const transaction = db.transaction(['tareas'], 'readwrite');
-      const objectStore = transaction.objectStore('tareas');
-      const requestDelete = objectStore.clear();
-      requestDelete.onsuccess = function () {
-        console.log('Base de datos borrada con éxito');
-      };
-      requestDelete.onerror = function (event) {
-        console.error('Error al borrar la base de datos', event.target.error);
-      };
-    };
 
-    request.onupgradeneeded = function (event) {
-      // Aquí se puede actualizar el esquema de la base de datos si se requiere
-    };
 
-    request.onerror = function (event) {
-      console.error('Error al abrir la base de datos', event.target.error);
-    };
-  }
-  guardarEnMemoria(profundidad, objetivo, nombre) {
-    //guarda en memoria
-    this.guardarSolucion(profundidad, objetivo, nombre);
-
-    //imprimir tareas soluciones
-    this.obtenerTareasSolucion(function (tareas) {
-      console.log("imprimiendo las tareas que estan en la base de datos:");
-      console.log(JSON.stringify(tareas));
-    });
-  }
-
-}
-const BdTareaSolucion = new BaseDeDatosTareaSolucion('miBaseDeDatos', function (db) {
-  const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement: true });
-  objectStore.createIndex('profundidad', 'profundidad', { unique: false });
-  objectStore.createIndex('soluciones', 'soluciones', { unique: false });
-});
 class BaseDeDatosTarea {
   constructor(nombre, esquema) {
     this.db2 = gestor.abrirBaseDeDatos(nombre, esquema);
@@ -233,6 +160,35 @@ const BdTarea = new BaseDeDatosTarea('miBaseDeDatosSoloTareas', function (db) {
 
 
 
+class MemoryDatabase {
+  constructor() {
+    this.data = {};
+    this.lastId = 0;
+  }
+
+  add(obj) {
+    const id = ++this.lastId;
+    this.data[id] = obj;
+    return id;
+  }
+
+  getAll() {
+    return Object.values(this.data);
+  }
+
+  delete(id) {
+    if (this.data.hasOwnProperty(id)) {
+      delete this.data[id];
+      return true;
+    }
+    return false;
+  }
+
+  clear() {
+    this.data = {};
+    this.lastId = 0;
+  }
+}
 
 
 
@@ -250,14 +206,49 @@ const BdTarea = new BaseDeDatosTarea('miBaseDeDatosSoloTareas', function (db) {
 
 
 
+  class BaseDeDatosTareaSolucion {
 
+     constructor() {
+      this.db1 =  new MemoryDatabase();
+    }
+  
 
+    async obtenerTodasLasSoluciones() {
+      let todos = this.db1.getAll();
+      const solucionesArray = todos.map(todo => todo.soluciones);
+      return solucionesArray;
+    }
+  
+     guardarSolucion(profundidad, tarea, soluciones) {
+      this.db1.add({ profundidad: profundidad, tarea: tarea, soluciones: soluciones });
+    } 
 
+    
+    borrarBaseDeDatosDeSoluciones() {
+      this.db1.clear();
+    }
+    guardarEnMemoria(profundidad, objetivo, nombre) {
+      //guarda en memoria
+      this.guardarSolucion(profundidad, objetivo, nombre);
+  
+      //imprimir tareas soluciones
+      let soluciones=this.obtenerTodasLasSoluciones();
+        console.log("imprimiendo las tareas que estan en la base de datos: " + soluciones);
+        
+      
+    }
+  
+  }
 
+// 'miBaseDeDatos2s', ["profundidad","tareas","soluciones"]
 
+  const BdTareaSolucion = new BaseDeDatosTareaSolucion();
+  
 
-
-
+  BdTareaSolucion.guardarSolucion(1, "hola coomo estas? esto es una tarea", "solucion de la vida") ;
+  //BdTareaSolucion.guardarEnMemoria(profundidad, objetivo, nombre)
+  //BdTareaSolucion.obtenerTodasLasSoluciones()
+  //BdTareaSolucion.borrarBaseDeDatosDeSoluciones()
 
 
 
@@ -377,7 +368,7 @@ chrome.runtime.onMessage.addListener(function (mensaje, sender, respuesta) {
     //  baseDeDatos1.limpiarBaseDeDatos();
     //  baseDeDatos2.limpiarBaseDeDatos();
     BdTarea.borrarBaseDeDatosDeTareas();
-    BdTareaSolucion.borrarBaseDeDatosDeSoluciones();
+   // BdTareaSolucion.borrarBaseDeDatosDeSoluciones();
 
     const nombre = mensaje.datos.nombre; // Obtener el valor del primer campo de consulta
     const objetivo = mensaje.datos.objetivo; // Obtener el valor del segundo campo de consulta
