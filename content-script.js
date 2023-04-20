@@ -42,7 +42,6 @@ class GestionBaseDeDatos {
   }
 }
 const gestor = new GestionBaseDeDatos();
-
 class BaseDeDatosTareaSolucion {
 
   constructor(nombre, esquema) {
@@ -117,13 +116,11 @@ class BaseDeDatosTareaSolucion {
   }
 
 }
-
 const BdTareaSolucion = new BaseDeDatosTareaSolucion('miBaseDeDatos', function (db) {
   const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement: true });
   objectStore.createIndex('profundidad', 'profundidad', { unique: false });
   objectStore.createIndex('soluciones', 'soluciones', { unique: false });
 });
-
 class BaseDeDatosTarea {
   constructor(nombre, esquema) {
     this.db2 = gestor.abrirBaseDeDatos(nombre, esquema);
@@ -229,9 +226,6 @@ const BdTarea = new BaseDeDatosTarea('miBaseDeDatosSoloTareas', function (db) {
   const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement: true });
   objectStore.createIndex('profundidad', 'profundidad', { unique: false });
 });
-
-
-
 class ChatGPT {
 
   async enviarMensaje(mensaje, chat) {
@@ -328,7 +322,6 @@ class ChatGPT {
   } */
 
 }
-
 console.log("content-script.js");
 //variables
 var continuar = true;
@@ -371,6 +364,66 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     // continuar=false;
   }
 });
+
+
+//funciones de apoyo
+function enviarTexto(texto, color) {
+
+  if (chrome.runtime && chrome.runtime.sendMessage) {
+    var mensaje = {
+      texto: texto,
+      color: color // Agregamos el color al objeto de mensaje
+    };
+    chrome.runtime.sendMessage(mensaje, function (response) {
+      //  console.log('Texto enviado a popup.js');
+    });
+  }
+}
+function encontrarTitulosSimilares(soluciones, tarea) {
+  // Creamos un objeto para almacenar los puntajes de similitud de cada título
+  const similitud = {};
+
+  // Recorremos todos los títulos en el índice
+  soluciones.forEach(function (titulo) {
+    // Calculamos el puntaje de similitud entre el título y la tarea
+    const puntaje = calcularPuntajeSimilitud(titulo, tarea);
+
+    // Almacenamos el puntaje de similitud en el objeto
+    similitud[titulo] = puntaje;
+  });
+
+  // Ordenamos los títulos según su puntaje de similitud en orden descendente
+  const titulosOrdenados = Object.keys(similitud).sort(function (a, b) {
+    return similitud[b] - similitud[a];
+  });
+
+  // Devolvemos los 3 títulos con el puntaje de similitud más alto
+  return titulosOrdenados.slice(0, 3);
+}
+function calcularPuntajeSimilitud(cadena1, cadena2) {
+  // Convertimos ambas cadenas a minúsculas y eliminamos los caracteres no alfabéticos
+  const str1 = cadena1.toLowerCase().replace(/[^a-zA-Z]+/g, '');
+  const str2 = cadena2.toLowerCase().replace(/[^a-zA-Z]+/g, '');
+
+  // Calculamos el puntaje de similitud
+  const puntaje = new Set(str1.split('')).size + new Set(str2.split('')).size - new Set([...str1, ...str2]).size;
+
+  return puntaje;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -559,52 +612,4 @@ async function agentePriorizacionDeTareas() {
   pilaDeTareas(tareasArreglo, true);
 
 
-}
-
-
-
-
-//funciones de apoyo
-function enviarTexto(texto, color) {
-
-  if (chrome.runtime && chrome.runtime.sendMessage) {
-    var mensaje = {
-      texto: texto,
-      color: color // Agregamos el color al objeto de mensaje
-    };
-    chrome.runtime.sendMessage(mensaje, function (response) {
-      //  console.log('Texto enviado a popup.js');
-    });
-  }
-}
-function encontrarTitulosSimilares(soluciones, tarea) {
-  // Creamos un objeto para almacenar los puntajes de similitud de cada título
-  const similitud = {};
-
-  // Recorremos todos los títulos en el índice
-  soluciones.forEach(function (titulo) {
-    // Calculamos el puntaje de similitud entre el título y la tarea
-    const puntaje = calcularPuntajeSimilitud(titulo, tarea);
-
-    // Almacenamos el puntaje de similitud en el objeto
-    similitud[titulo] = puntaje;
-  });
-
-  // Ordenamos los títulos según su puntaje de similitud en orden descendente
-  const titulosOrdenados = Object.keys(similitud).sort(function (a, b) {
-    return similitud[b] - similitud[a];
-  });
-
-  // Devolvemos los 3 títulos con el puntaje de similitud más alto
-  return titulosOrdenados.slice(0, 3);
-}
-function calcularPuntajeSimilitud(cadena1, cadena2) {
-  // Convertimos ambas cadenas a minúsculas y eliminamos los caracteres no alfabéticos
-  const str1 = cadena1.toLowerCase().replace(/[^a-zA-Z]+/g, '');
-  const str2 = cadena2.toLowerCase().replace(/[^a-zA-Z]+/g, '');
-
-  // Calculamos el puntaje de similitud
-  const puntaje = new Set(str1.split('')).size + new Set(str2.split('')).size - new Set([...str1, ...str2]).size;
-
-  return puntaje;
 }
