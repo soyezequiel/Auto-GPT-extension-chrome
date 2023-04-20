@@ -8,6 +8,11 @@ function abrirBaseDeDatos(nombre, esquema) {
     const db = event.target.result;
     esquema(db);
   }
+  request.onerror = function(event) {
+    const errorMessage = "Error al abrir la base de datos: " + event.target.error.message;
+    console.error(errorMessage);
+    alert(errorMessage);
+  };
   return request;
 }
 function leerDatos(baseDeDatos, nombreObjectStore, callback) {
@@ -417,12 +422,23 @@ async function pilaDeTareas(profundidad, tareasArreglo, ordenado) {
     //baseDeDatos2.guardarTarea(profundidad, tareaActual);
     guardarTarea(profundidad, tareaActual);
   }
+  /*
   // imprimir tareas sin solucion
   // Llamada a la función para obtener las tareas y luego imprimirlas
-  //tareas = await baseDeDatos2.obtenerTodasLasTareas()
-  tareas = await obtenerTodasLasTareas()
+  tareas = await baseDeDatos2.obtenerTodasLasTareas()
   // hacer algo con las tareas
   console.log('Tareas de la pila de tareas de la base de datos:', tareas);
+*/
+
+
+  obtenerTareas().then(function (tareas) {
+    // hacer algo con las tareas
+    console.log('Tareas de la pila de tareas de la base de datos:', tareas);
+  }).catch(function (error) {
+    // manejar el error
+  });
+
+
 
 
   //let tareaAtratar = await baseDeDatos2.borrarTareaEnTope();
