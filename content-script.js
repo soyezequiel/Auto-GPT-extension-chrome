@@ -226,6 +226,49 @@ const BdTarea = new BaseDeDatosTarea('miBaseDeDatosSoloTareas', function (db) {
   const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement: true });
   objectStore.createIndex('profundidad', 'profundidad', { unique: false });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class ChatGPT {
 
   async enviarMensaje(mensaje, chat) {
