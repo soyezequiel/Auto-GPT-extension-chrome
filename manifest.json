@@ -31,7 +31,12 @@
         {
           "matches": ["https://chat.openai.com/*"],
 
-          "js": ["content-script.js"]
+          "js": [
+            "componentes.js",
+            "gestorDeDatos.js",
+            "gpt.js",
+            "content-script.js"
+          ]
         }
       ]
 
