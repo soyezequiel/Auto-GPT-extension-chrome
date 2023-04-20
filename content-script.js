@@ -1,55 +1,58 @@
+class GestionBaseDeDatos{
 
-
-
-//funciones que interactuan con la base de datos de forma directa
-function abrirBaseDeDatos(nombre, esquema) {
-  const request = indexedDB.open(nombre);
-  request.onupgradeneeded = function (event) {
-    const db = event.target.result;
-    esquema(db);
-  }
-  request.onerror = function(event) {
-    const errorMessage = "Error al abrir la base de datos: " + event.target.error.message;
-    console.error(errorMessage);
-    alert(errorMessage);
-  };
-  return request;
-}
-function leerDatos(baseDeDatos, nombreObjectStore, callback) {
-  const transaction = baseDeDatos.transaction([nombreObjectStore], 'readonly');
-  const objectStore = transaction.objectStore(nombreObjectStore);
-  const cursor = objectStore.openCursor();
-  const datos = [];
-  cursor.onsuccess = function (event) {
-    const cursor = event.target.result;
-    if (cursor) {
-      datos.push(cursor.value);
-      cursor.continue();
-    } else {
-      callback(datos);
+  //funciones que interactuan con la base de datos de forma directa
+   abrirBaseDeDatos(nombre, esquema) {
+    const request = indexedDB.open(nombre);
+    request.onupgradeneeded = function (event) {
+      const db = event.target.result;
+      esquema(db);
     }
-  };
+    request.onerror = function (event) {
+      const errorMessage = "Error al abrir la base de datos: " + event.target.error.message;
+      console.error(errorMessage);
+      alert(errorMessage);
+    };
+    return request;
+  }
+   leerDatos(baseDeDatos, nombreObjectStore, callback) {
+    const transaction = baseDeDatos.transaction([nombreObjectStore], 'readonly');
+    const objectStore = transaction.objectStore(nombreObjectStore);
+    const cursor = objectStore.openCursor();
+    const datos = [];
+    cursor.onsuccess = function (event) {
+      const cursor = event.target.result;
+      if (cursor) {
+        datos.push(cursor.value);
+        cursor.continue();
+      } else {
+        callback(datos);
+      }
+    };
+  }
+   guardarDatos(baseDeDatos, nombreObjectStore, datos) {
+    const transaction = baseDeDatos.transaction([nombreObjectStore], 'readwrite');
+    const objectStore = transaction.objectStore(nombreObjectStore);
+    objectStore.add(datos);
+    transaction.oncomplete = function () {
+      console.log('Datos guardados con éxito');
+    };
+    transaction.onerror = function () {
+      console.log('Error al guardar los datos');
+    };
+  }
 }
-function guardarDatos(baseDeDatos, nombreObjectStore, datos) {
-  const transaction = baseDeDatos.transaction([nombreObjectStore], 'readwrite');
-  const objectStore = transaction.objectStore(nombreObjectStore);
-  objectStore.add(datos);
-  transaction.oncomplete = function () {
-    console.log('Datos guardados con éxito');
-  };
-  transaction.onerror = function () {
-    console.log('Error al guardar los datos');
-  };
-}
+const gestor=new GestionBaseDeDatos();
+
+
 
 // Abrir la base de datos de profundidad,tarea,solucion
-const db1 = abrirBaseDeDatos('miBaseDeDatos', function (db) {
+const db1 = gestor.abrirBaseDeDatos('miBaseDeDatos', function (db) {
   const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement: true });
   objectStore.createIndex('profundidad', 'profundidad', { unique: false });
   objectStore.createIndex('soluciones', 'soluciones', { unique: false });
 });
 function obtenerTareasSolucion(callback) {
-  leerDatos(db1.result, 'tareas', callback);
+  gestor.leerDatos(db1.result, 'tareas', callback);
 }
 async function obtenerTodasLasSoluciones() {
   try {
@@ -63,9 +66,9 @@ async function obtenerTodasLasSoluciones() {
 
 function obtenersoluciones() {
   return new Promise((resolve, reject) => {
-    const request = abrirBaseDeDatos('miBaseDeDatos', function (db) { });
+    const request = gestor.abrirBaseDeDatos('miBaseDeDatos', function (db) { });
     request.onsuccess = function (event) {
-      leerDatos(event.target.result, 'tareas', function (tareas) {
+      gestor.leerDatos(event.target.result, 'tareas', function (tareas) {
         const soluciones = tareas.map(function (tarea) {
           return tarea.soluciones;
         });
@@ -78,7 +81,7 @@ function obtenersoluciones() {
   });
 }
 function guardarSolucion(profundidad, tarea, soluciones) {
-  guardarDatos(db1.result, 'tareas', { profundidad: profundidad, tarea: tarea, soluciones: soluciones });
+  gestor.guardarDatos(db1.result, 'tareas', { profundidad: profundidad, tarea: tarea, soluciones: soluciones });
 }
 function borrarBaseDeDatosDeSoluciones() {
   const request = indexedDB.open('miBaseDeDatos');
@@ -115,20 +118,20 @@ function guardarEnMemoria(profundidad, objetivo, nombre) {
 }
 
 // Abrir la base de datos de profundidad,tarea
-const db2 = abrirBaseDeDatos('miBaseDeDatosSoloTareas', function (db) {
+const db2 = gestor.abrirBaseDeDatos('miBaseDeDatosSoloTareas', function (db) {
   const objectStore = db.createObjectStore('tareas', { keyPath: 'id', autoIncrement: true });
   objectStore.createIndex('profundidad', 'profundidad', { unique: false });
 });
 
 function obtenerTareas() {
   return new Promise(function (resolve, reject) {
-    leerDatos(db2.result, 'tareas', function (tareas) {
+    gestor.leerDatos(db2.result, 'tareas', function (tareas) {
       resolve(tareas);
     });
   });
 }
 function guardarTarea(profundidad, tarea) {
-  guardarDatos(db2.result, 'tareas', { profundidad: profundidad, tarea: tarea });
+  gestor.guardarDatos(db2.result, 'tareas', { profundidad: profundidad, tarea: tarea });
 }
 
 function borrarBaseDeDatosDeTareas() {
@@ -325,10 +328,10 @@ const gpt = new ChatGPT();
 //listener
 chrome.runtime.onMessage.addListener(function (mensaje, sender, respuesta) {
   if (mensaje.tipo === "informacion") {
-  //  baseDeDatos1.limpiarBaseDeDatos();
-  //  baseDeDatos2.limpiarBaseDeDatos();
-  borrarBaseDeDatosDeTareas();
-  borrarBaseDeDatosDeSoluciones();
+    //  baseDeDatos1.limpiarBaseDeDatos();
+    //  baseDeDatos2.limpiarBaseDeDatos();
+    borrarBaseDeDatosDeTareas();
+    borrarBaseDeDatosDeSoluciones();
 
     const nombre = mensaje.datos.nombre; // Obtener el valor del primer campo de consulta
     const objetivo = mensaje.datos.objetivo; // Obtener el valor del segundo campo de consulta
@@ -467,8 +470,8 @@ async function agenteDeEjecucion(profundidad, tarea) {
     console.log("entrando al agente de ejecucion de tareas");
 
     try {
-     // let todasLasSoluciones = await baseDeDatos1.obtenerTodasLasSoluciones();
-     let todasLasSoluciones = await obtenerTodasLasSoluciones();
+      // let todasLasSoluciones = await baseDeDatos1.obtenerTodasLasSoluciones();
+      let todasLasSoluciones = await obtenerTodasLasSoluciones();
       if (!Array.isArray(todasLasSoluciones)) {
         throw new Error("obtenerTodasLasSoluciones no devuelve un array");
       }
@@ -529,8 +532,8 @@ async function agenteCreacionDeTareas2(profundidad, tarea, solucion, informacion
 
 async function agentePriorizacionDeTareas() {
 
- // let cadena = await baseDeDatos2.obtenerTodasLasTareas()
- let cadena = await obtenerTodasLasTareas()
+  // let cadena = await baseDeDatos2.obtenerTodasLasTareas()
+  let cadena = await obtenerTodasLasTareas()
 
   let mensaje = await "prioriza las tareas teniendo en cuenta su prioridad y su correlatividad. sin agregar texto extra, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  " + cadena;
 
