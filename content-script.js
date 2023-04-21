@@ -1,10 +1,45 @@
-// Abrir la base de datos de profundidad,tarea
-
-
-// console.log("content-script.js");
-//variables
 var continuar = true;
 var ProfundidadConfigurada = 1;
+
+//Maquina de estados finito
+async function principal(nombre, objetivo) {
+  // aqui se enviara al agente de creacion de tareas el nombre y el objetivo para
+  let texto = "Nombre: " + nombre + '\n' + "Objetivo: " + objetivo;
+  enviarTexto(texto, "blue");
+  await agenteCreadorDeTareas.crearApartirDelObjetivo(nombre, objetivo);
+  maquina();
+}
+async function maquina(){
+  if (continuar) {
+    await agenteCreadorDeTareas.enviarTareas(colaDeTareas);
+    ordenado = true; //se lo forza a activado devido a que el agente de priorizacion de tareas no funciona de forma estable
+    if (ordenado) {
+      let todasLasSoluciones = await BdTareaSolucion.obtenerarrayDeStringTodasLasSoluciones();
+      if (!Array.isArray(todasLasSoluciones)) { throw new Error("obtenerarrayDeStringTodasLasSoluciones no devuelve un array"); }
+      await colaDeTareas.moverTareaMasPrioritaria(agenteDeEjecucionDeTareas, todasLasSoluciones);
+    } else {
+      await colaDeTareas.enviarTareas(agenteDePriorizacionTareas);
+      await agenteDePriorizacionTareas.enviarTareasOrdenadas(colaDeTareas);
+    }
+    await agenteDeEjecucionDeTareas.enviarParTareaSolucion(agenteCreadorDeTareas);
+
+    await maquina();
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //listener
@@ -47,38 +82,3 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 */
 
-
-
-
-
-//Maquina de estados finito
-
-async function principal(nombre, objetivo) {
-
-  // aqui se enviara al agente de creacion de tareas el nombre y el objetivo para
-
-  let texto = "Nombre: " + nombre + '\n' + "Objetivo: " + objetivo;
-  enviarTexto(texto, "blue");
-  await agenteCreadorDeTareas.crearApartirDelObjetivo(nombre, objetivo);
-  maquina();
-
-}
-
-async function maquina(){
-
-  await agenteCreadorDeTareas.enviarTareas(colaDeTareas);
-  ordenado = true; //se lo forza a activado devido a que el agente de priorizacion de tareas no funciona de forma estable
-  if (ordenado) {
-    let todasLasSoluciones = await BdTareaSolucion.obtenerarrayDeStringTodasLasSoluciones();
-    if (!Array.isArray(todasLasSoluciones)) { throw new Error("obtenerarrayDeStringTodasLasSoluciones no devuelve un array"); }
-    await colaDeTareas.moverTareaMasPrioritaria(agenteDeEjecucionDeTareas, todasLasSoluciones);
-  } else {
-    await colaDeTareas.enviarTareas(agenteDePriorizacionTareas);
-    await agenteDePriorizacionTareas.enviarTareasOrdenadas(colaDeTareas);
-  }
-  await agenteDeEjecucionDeTareas.enviarParTareaSolucion(agenteCreadorDeTareas);
-  if (continuar) {
-    maquina();
-  }
-
-}

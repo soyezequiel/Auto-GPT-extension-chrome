@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.texto && request.color) { // Verificamos si se recibió el texto y el color en el mensaje
     console.log('Texto recibido desde content_script.js:', request.texto);
     console.log('Color recibido desde content_script.js:', request.color);
-    mostrarTexto(request.texto, request.color); // Pasamos el texto y el color a la función mostrarTexto
+    mostrarTexto(request.texto, request.color,false); // Pasamos el texto y el color a la función mostrarTexto
     sendResponse({ confirmacion: 'Texto recibido correctamente' });
   }
 });
@@ -37,7 +37,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 
 
-function mostrarTexto(texto, color) {
+function mostrarTexto2(texto, color) {
   var chat = document.createElement("div"); // creamos un elemento <div> para el chat
   chat.classList.add("chat"); // agregamos la clase "chat" al elemento <div>
   chat.style.backgroundColor = color; // establecemos el color de fondo del elemento <div> con el valor del parámetro "color"
@@ -45,6 +45,25 @@ function mostrarTexto(texto, color) {
   chat.appendChild(contenido); // agregamos el nodo de texto al elemento <div>
   document.getElementById("respuesta").appendChild(chat); // agregamos el elemento <div> al elemento con id "respuesta"
 }
+
+
+function mostrarTexto(texto, color, esUsuario) {
+  var chat = document.createElement("div"); // creamos un elemento <div> para el chat
+  chat.classList.add("chat"); // agregamos la clase "chat" al elemento <div>
+  if (esUsuario) {
+    chat.classList.add("sent"); // agregamos la clase "sent" si el mensaje es enviado por el usuario
+  } else {
+    chat.style.backgroundColor = color; // establecemos el color de fondo del elemento <div> con el valor del parámetro "color"
+  }
+  var contenido = document.createTextNode(texto); // creamos un nodo de texto con el contenido recibido
+  chat.appendChild(contenido); // agregamos el nodo de texto al elemento <div>
+  document.getElementById("respuesta").appendChild(chat); // agregamos el elemento <div> al elemento con id "respuesta"
+}
+
+
+
+
+
 
 /*
 function guardarEnPDF() {

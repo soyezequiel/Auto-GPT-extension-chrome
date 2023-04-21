@@ -17,6 +17,9 @@ class MemoryDatabase {
         this.lastId = lastId - 1;
         return lastValue;
     }
+    push(obj) {
+        return this.add(obj);
+    }
 
     getAll() {
 
@@ -41,11 +44,14 @@ class BaseDeDatosTarea {
         this.db = new MemoryDatabase();
     }
     guardarTarea(tarea) {
-        this.db.add(tarea);
+        this.db.push(tarea);
     }
 
     borrarBaseDeDatosDeTareas() {
         this.db.clear();
+    }
+    obtenerTodasLasTareas(){
+       return this.db.getAll();
     }
 
     obtenerArrayDeStringTodasLasTareas() {
@@ -67,7 +73,7 @@ class BaseDeDatosTareaSolucion {
         this.db = new MemoryDatabase();
     }
     guardarSolucion(tarea) {
-        this.db.add(tarea);
+        this.db.push(tarea);
     }
     borrarBaseDeDatosDeSoluciones() {
         this.db.clear();
