@@ -3,11 +3,16 @@ var ProfundidadConfigurada = 1;
 
 //Maquina de estados finito
 async function principal(nombre, objetivo) {
+  continuar=true;
   // aqui se enviara al agente de creacion de tareas el nombre y el objetivo para
   let texto = "Nombre: " + nombre + '\n' + "Objetivo: " + objetivo;
   enviarTexto(texto, "blue");
   await agenteCreadorDeTareas.crearApartirDelObjetivo(nombre, objetivo);
-  maquina();
+  await maquina();
+   enviarTexto("Rendimiento: "+await gpt.rendimiento()  + " consultas por minuto a chatGPT ","white");
+   enviarTexto("Cantidad de consultas: " +  await gpt.contador + " a chatGPT ","white");
+   enviarTexto( "Tiempo de sesión:  "+ await gpt.tiempo() + " minutos  ","white");
+
 }
 async function maquina(){
   if (continuar) {
@@ -15,7 +20,6 @@ async function maquina(){
     ordenado = true; //se lo forza a activado devido a que el agente de priorizacion de tareas no funciona de forma estable
     if (ordenado) {
       let todasLasSoluciones = await BdTareaSolucion.obtenerarrayDeStringTodasLasSoluciones();
-      if (!Array.isArray(todasLasSoluciones)) { throw new Error("obtenerarrayDeStringTodasLasSoluciones no devuelve un array"); }
       await colaDeTareas.moverTareaMasPrioritaria(agenteDeEjecucionDeTareas, todasLasSoluciones);
     } else {
       await colaDeTareas.enviarTareas(agenteDePriorizacionTareas);

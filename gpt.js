@@ -1,6 +1,18 @@
 class ChatGPT {
+  constructor(){
+    this.inicio=null;
+    this.contador=0;
+    this.final=null;
+  }
 
     async enviarMensaje(mensaje, chat) {
+      if(this.inicio == null){
+        this.inicio=new Date();
+      }else{
+        this.final=new Date();
+      }
+      this.contador++;
+
       await new Promise((resolve) => {
         //  clickButton();
         this.#seleccionarChat(chat);
@@ -52,7 +64,7 @@ class ChatGPT {
       } else {
         console.log('El cuadro de texto no existe en la página.');
       }
-  
+      
     }
     #puedoContinuar() {
       if (document.querySelector('.text-2xl span:first-child') !== null) {
@@ -89,7 +101,13 @@ class ChatGPT {
         return false;
       }
     }
-    
+    rendimiento(){
+      
+      return Math.round((this.contador/this.tiempo()));
+    }
+    tiempo(){
+      return Math.round((this.final - this.inicio)/(1000*60));
+    }
   
   
   

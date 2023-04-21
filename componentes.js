@@ -82,10 +82,11 @@ class AgenteCreacionDeTareas {
             let nuevoParTareaSolucion = new TareaSolucion(parTareaSolucion.profundidad + 1, nuevaTarea, "");
             
             this.arregloDePar.push(nuevoParTareaSolucion);
-            console.log("\n\n\n Nueva tarea creada ::::::::::::::: " + this.arregloDePar[0].tarea + "\n\n\n");
         } else {
-            enviarTexto("Si continuamos creando subtareas la profundidad de la siguiente subtarea seria "  + (parTareaSolucion.profundidad +1) + "que es mayor a " + ProfundidadConfigurada, "red");         
-            console.log("Si continuamos creando subtareas la profundidad de la siguiente subtarea seria "  + (parTareaSolucion.profundidad +1) + "que es mayor a " + ProfundidadConfigurada, "red");         
+            if (continuar){
+            enviarTexto("Si continuamos creando subtareas la profundidad de la siguiente subtarea seria "  + (parTareaSolucion.profundidad +1) + " que es mayor a " + ProfundidadConfigurada, "red");         
+            console.log("Si continuamos creando subtareas la profundidad de la siguiente subtarea seria "  + (parTareaSolucion.profundidad +1) + " que es mayor a " + ProfundidadConfigurada, "red");         
+        }
         }
         await BdTareaSolucion.guardarEnMemoria(parTareaSolucion);
         resolve(this.arregloDePar);
@@ -93,8 +94,6 @@ class AgenteCreacionDeTareas {
     }
     async enviarTareas(colaDeTareas) {
         console.log("\n AgenteCreacionDeTareas  ---->   colaDeTareas | Tipo: " + typeof this.arregloDePar.map(todo => todo.tarea).join("\n Tarea:") + " Son  " + this.arregloDePar.length + "  \n\n  Tarea: " + (this.arregloDePar).map(todo => todo.tarea).join("\n Tarea: "));
-      //  console.log("\n AgenteCreacionDeTareas  ---->   colaDeTareas | Tipo: " + typeof this.arregloDePar[0].tarea + "  \n\n  Tarea: " +   this.arregloDePar[0].tarea);
-
         colaDeTareas.recibirTareas(this.arregloDePar, true);
     }
 }
@@ -225,8 +224,6 @@ class AgentePriorizacionDeTareas {
     enviarTareasOrdenadas(pilaDeTareas) {
 
         console.log("\n AgentePriorizacionDeTareas  ---->  colaDeTareas | tipo:" + typeof this.arregloDeTareasOrdenada.map(todo => todo.tarea).join(", ") + " \n\n Tarea: " + (this.arregloDeTareasOrdenada).map(todo => todo.tarea).join("\n Tarea: "));
-        console.log("\n AgentePriorizacionDeTareas  ---->  colaDeTareas | tipo:" + typeof this.arregloDeTareasOrdenada.map(todo => todo.tarea));
-        console.log("\n AgentePriorizacionDeTareas  ---->  colaDeTareas | tipo:" + typeof this.arregloDeTareasOrdenada.map(todo => todo.tarea) + " \n\n Tarea: " + this.arregloDeTareasOrdenada[0].tarea);
         colaDeTareas.recibirTareas(this.arregloDeTareasOrdenada, true);
     }
 
