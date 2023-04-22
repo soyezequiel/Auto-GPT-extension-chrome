@@ -1,6 +1,7 @@
 //funciones de apoyo
+var proceso=[];
 function enviarTexto(texto, color) {
-
+    proceso.push(texto);
     if (chrome.runtime && chrome.runtime.sendMessage) {
         var mensaje = {
             texto: texto,
@@ -79,9 +80,17 @@ class AgenteCreacionDeTareas {
             let mensaje = "Conociendo esta tarea \n \n \" " + parTareaSolucion.tarea + " \" \n\n usa esta información:  \n \" " + contexto.join(" \n\n ") + " \"  \n\n su ejecución \n\n " + parTareaSolucion.solucion + " \n\n en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo, caso contrario contesta \" true \" \n\n La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n\n La respuesta tiene que tener este formato \n\n Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ";
             var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
             let nuevaTarea = respuesta.replace("Tarea: ", "");
-            let nuevoParTareaSolucion = new TareaSolucion(parTareaSolucion.profundidad + 1, nuevaTarea, "");
-            
-            this.arregloDePar.push(nuevoParTareaSolucion);
+
+
+ 
+            if (this.noMasSubTarea(nuevaTarea)){
+                enviarTexto("tarea completada ","blue");
+                console.log("Tarea completada");
+            }else{          
+                let nuevoParTareaSolucion = new TareaSolucion(parTareaSolucion.profundidad + 1, nuevaTarea, "");               
+                this.arregloDePar.push(nuevoParTareaSolucion);
+            }
+
         } else {
             if (continuar){
             enviarTexto("Si continuamos creando subtareas la profundidad de la siguiente subtarea seria "  + (parTareaSolucion.profundidad +1) + " que es mayor a " + ProfundidadConfigurada, "red");         
@@ -96,6 +105,11 @@ class AgenteCreacionDeTareas {
         console.log("\n AgenteCreacionDeTareas  ---->   colaDeTareas | Tipo: " + typeof this.arregloDePar.map(todo => todo.tarea).join("\n Tarea:") + " Son  " + this.arregloDePar.length + "  \n\n  Tarea: " + (this.arregloDePar).map(todo => todo.tarea).join("\n Tarea: "));
         colaDeTareas.recibirTareas(this.arregloDePar, true);
     }
+    noMasSubTarea(cadena) {
+        let palabras = cadena.trim().toLowerCase().replace(/\.+/g, '').split(" ");
+        return palabras.length < 4 && palabras.includes("true");
+      }
+      
 }
 var agenteCreadorDeTareas = new AgenteCreacionDeTareas();
 

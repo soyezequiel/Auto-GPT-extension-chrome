@@ -13,6 +13,8 @@ async function principal(nombre, objetivo) {
    enviarTexto("Cantidad de consultas: " +  await gpt.contador + " a chatGPT ","white");
    enviarTexto( "Tiempo de sesión:  "+ await gpt.tiempo() + " minutos  ","white");
 
+   console.log(proceso.join(" \n\n"));
+
 }
 async function maquina(){
   if (continuar) {
@@ -28,7 +30,7 @@ async function maquina(){
     }
     await agenteDeEjecucionDeTareas.enviarParTareaSolucion(agenteCreadorDeTareas);
     await maquina();
-    
+
   }
 }
 
