@@ -12,6 +12,8 @@ async function principal(nombre, objetivo) {
    enviarTexto("Rendimiento: "+await gpt.rendimiento()  + " consultas por minuto a chatGPT ","white");
    enviarTexto("Cantidad de consultas: " +  await gpt.contador + " a chatGPT ","white");
    enviarTexto( "Tiempo de sesión:  "+ await gpt.tiempo() + " minutos  ","white");
+   enviarTexto( "Tareas creadas:  "+  colaDeTareas.getTareasTotales() );
+   enviarTexto( "Tareas ejecutadas:  "+  agenteDeEjecucionDeTareas.getTareasEjecutadas() );
 
    console.log(proceso.join(" \n\n"));
 
@@ -36,31 +38,21 @@ async function maquina(){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 //listener
 chrome.runtime.onMessage.addListener(function (mensaje, sender, respuesta) {
   if (mensaje.tipo === "informacion") {
-
     BdTarea.borrarBaseDeDatosDeTareas();
     BdTareaSolucion.borrarBaseDeDatosDeSoluciones();
 
     const nombre = mensaje.datos.nombre; // Obtener el valor del primer campo de consulta
     const objetivo = mensaje.datos.objetivo; // Obtener el valor del segundo campo de consulta
+    const retardo =mensaje.datos.retardo;
+    console.log("retardo establecido: " + retardo);
+    gpt.establecerRetardo((retardo * 1000));
 
 
     const numero = mensaje.datos.numero; // Obtener el valor del campo numérico deslizante
-    ProfundidadConfigurada = numero;
+   // ProfundidadConfigurada = numero;
     principal(nombre, objetivo);
   }
 });

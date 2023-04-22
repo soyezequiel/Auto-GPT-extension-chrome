@@ -8,15 +8,16 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const nombre = document.querySelector('#nombre').value; // Obtener el valor del primer campo de consulta
   const objetivo = document.querySelector('#objetivo').value; // Obtener el valor del segundo campo de consulta
-  const numero = document.querySelector('#numero').value; // Obtener el valor del campo numérico deslizante
-
+ // const numero = document.querySelector('#numero').value; // Obtener el valor del campo numérico deslizante
+  const retardo = document.querySelector('#retardo').value; // Obtener el valor del campo numérico deslizante
   chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
     await chrome.tabs.sendMessage(tabs[0].id, {
       tipo: "informacion",
       datos: {
         nombre: nombre,
         objetivo: objetivo,
-        numero: numero
+   //     numero: numero,
+        retardo:retardo
       }
     });
   });
@@ -103,3 +104,9 @@ function guardarEnPDF() {
 
 
 
+const btnOpcionesAvanzadas = document.getElementById('btn-opciones-avanzadas');
+const camposAvanzados = document.getElementById('campos-avanzados');
+
+btnOpcionesAvanzadas.addEventListener('click', () => {
+  camposAvanzados.style.display = camposAvanzados.style.display === 'none' ? 'block' : 'none';
+});

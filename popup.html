@@ -11,7 +11,7 @@
   <div
     style="display: flex; flex-direction: row-reverse; align-items: center; background-color: #f8d7da; border-radius: 5px; box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2); padding: 10px;">
     <div style="margin-left: 20px;">
-      <span style="font-size: 14px;">Recuerde tener estos chats creados, de ser posible, que estén vacíos</span>
+      <span style="font-size: 12px;">Recuerda tener la página de ChatGPT en primer plano y tener estos chats creados</span>
 
 
     </div>
@@ -31,11 +31,20 @@
 
   <form id="formulario">
     <label for="nombre">Nombre:</label>
-    <input type="text" id="nombre" name="nombre" required><br><br>
+    <input type="text" id="nombre" name="nombre" required>
     <label for="mensaje">Objetivo:</label>
-    <input type="text" id="objetivo" name="objetivo" required><br><br>
-    <label for="numero">Profundidad:</label>
-    <input type="number" id="numero" name="numero" min="0" value="2"><br><br>
+    <input type="text" id="objetivo" name="objetivo" required>
+  
+    <div id="opciones-avanzadas">
+      <button type="button" id="btn-opciones-avanzadas">Opciones avanzadas</button>
+      <div id="campos-avanzados">
+   <!--     <label for="numero">Profundidad:</label><br>
+        <input type="number" id="numero" name="numero" min="0" value="2"> <br>  -->
+        <label for="retardo">Tiempo minimo entre cada mensaje que se envia a chatGPT:</label>
+        <input type="number" id="retardo" name="retardo" min="3" value="6"  placeholder="Tiempo minimo entre cada mensaje que se envia a chatGPT">
+      </div>
+    </div>
+  
     <button id="enviar">Iniciar proceso</button>
   </form>
 
@@ -43,9 +52,9 @@
   <div id="respuesta" style="height: 400px; overflow-y: scroll;"></div>
 
 
-  <script type="module" src="./content-script.js"></script>
+  <script type="module" src="./content/content-script.js"></script>
   <script type="module" src="popup.js"></script>
-  <script type="module" src="gpt.js"></script>
+  <script type="module" src="./content/gpt.js"></script>
 </body>
 
 </html>

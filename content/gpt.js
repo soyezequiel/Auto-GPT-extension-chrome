@@ -3,9 +3,14 @@ class ChatGPT {
     this.inicio=null;
     this.contador=0;
     this.final=null;
+    this.tiempoDeRetardo=3000;
+  }
+  establecerRetardo(retardo){
+    this.tiempoDeRetardo=retardo;
   }
 
     async enviarMensaje(mensaje, chat) {
+      enviarTexto("Pensando","gray");
       if(this.inicio == null){
         this.inicio=new Date();
       }else{
@@ -18,7 +23,7 @@ class ChatGPT {
         this.#seleccionarChat(chat);
         setTimeout(() => {
           resolve();
-        }, 3000);
+        }, this.tiempoDeRetardo);
       });
   
       // código que se ejecutará después de 3 segundos

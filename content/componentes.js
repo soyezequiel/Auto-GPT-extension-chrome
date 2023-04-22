@@ -53,7 +53,7 @@ class AgenteCreacionDeTareas {
         this.arregloDePar = [];
     }
     async crearApartirDelObjetivo(nombre, objetivo) {
-            this.arregloDePar = [];
+            this.getArregloDePar = [];
             let mensaje = "Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres " + nombre + " y el objetivo es " + objetivo + ".   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp";
             var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
             // Procesar tareas para convertila en un array de tareas
@@ -74,9 +74,11 @@ class AgenteCreacionDeTareas {
     async crearTareasApartirDeSoluciones(parTareaSolucion, contexto) {
         return new Promise(async (resolve, reject) => {
          this.arregloDePar = [];
-        if (parTareaSolucion.profundidad +1  <= ProfundidadConfigurada) {
-            enviarTexto("Crearemos mas subtareas ya que la profundidad de la siguiente subtarea seria " + (parTareaSolucion.profundidad +1)  + " que es menor o igual a  " + ProfundidadConfigurada, "red");
-            console.log("Crearemos mas subtareas ya que la profundidad de la siguiente subtarea seria " + (parTareaSolucion.profundidad +1)  + " que es menor o igual a  " + ProfundidadConfigurada, "red");
+     /*   if (parTareaSolucion.profundidad +1  <= ProfundidadConfigurada) {
+           enviarTexto("Crearemos mas subtareas ya que la profundidad de la siguiente subtarea seria " + (parTareaSolucion.profundidad +1)  + " que es menor o igual a  " + ProfundidadConfigurada, "red");
+           console.log("Crearemos mas subtareas ya que la profundidad de la siguiente subtarea seria " + (parTareaSolucion.profundidad +1)  + " que es menor o igual a  " + ProfundidadConfigurada, "red"); */
+         
+
             let mensaje = "Conociendo esta tarea \n \n \" " + parTareaSolucion.tarea + " \" \n\n usa esta información:  \n \" " + contexto.join(" \n\n ") + " \"  \n\n su ejecución \n\n " + parTareaSolucion.solucion + " \n\n en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo, caso contrario contesta \" true \" \n\n La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n\n La respuesta tiene que tener este formato \n\n Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ";
             var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
             let nuevaTarea = respuesta.replace("Tarea: ", "");
@@ -91,12 +93,13 @@ class AgenteCreacionDeTareas {
                 this.arregloDePar.push(nuevoParTareaSolucion);
             }
 
-        } else {
+ /*       } else {
             if (continuar){
-            enviarTexto("Si continuamos creando subtareas la profundidad de la siguiente subtarea seria "  + (parTareaSolucion.profundidad +1) + " que es mayor a " + ProfundidadConfigurada, "red");         
+            //enviarTexto("Si continuamos creando subtareas la profundidad de la siguiente subtarea seria "  + (parTareaSolucion.profundidad +1) + " que es mayor a " + ProfundidadConfigurada, "red");         
             console.log("Si continuamos creando subtareas la profundidad de la siguiente subtarea seria "  + (parTareaSolucion.profundidad +1) + " que es mayor a " + ProfundidadConfigurada, "red");         
-        }
-        }
+            
+        } 
+        } */
         await BdTareaSolucion.guardarEnMemoria(parTareaSolucion);
         resolve(this.arregloDePar);
     });
@@ -118,6 +121,10 @@ class ColaDeTareas {
     constructor() {
         this.ordenado = false;
         this.arregloDeTareas = [];
+        this.tareasTotales=0;
+    }
+   async getTareasTotales(){
+        return this.tareasTotales;
     }
     async recibirTareas(arregloDePar, ordenado) {
         if (arregloDePar.length > 0){
@@ -127,6 +134,7 @@ class ColaDeTareas {
             for (let i = arregloDePar.length -1 ; i >=0 ; i--) {
         
                 await BdTarea.guardarTarea(arregloDePar[i]);
+                this.tareasTotales++;
             }
             let string = await BdTarea.obtenerStringTareas();
             for (let i = 0; i < arregloDePar.length; i++) {
@@ -171,8 +179,12 @@ class AgenteDeEjecucionDeTareas {
     constructor() {
         this.parTareaSolucion = null;
         this.contexto = null;
+        this.tareasEjecutadas=0;
     }
 
+   async tareasEjecutadas(){
+        return this.tareasEjecutadas;
+    }
 
     async recibirTarea(parTareaAtratar, informacion) {
         try {
@@ -185,6 +197,7 @@ class AgenteDeEjecucionDeTareas {
             enviarTexto("Ejecutando tarea: " + parTareaAtratar.tarea + " --> " + solucion, "orange");
             parTareaAtratar.solucion = await solucion;
             this.parTareaSolucion = await parTareaAtratar;
+            this.tareasEjecutadas++;
         } catch (error) {
             console.error(error);
         }

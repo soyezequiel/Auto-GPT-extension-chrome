@@ -92,4 +92,14 @@ body {
   }
   
 
-
+  #campos-avanzados {
+    display: none;
+  }
+  
+  #opciones-avanzadas button {
+    margin-bottom: 10px;
+  }
+  
+  #opciones-avanzadas button:focus + #campos-avanzados {
+    display: block;
+  }

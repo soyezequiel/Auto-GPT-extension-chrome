@@ -4,6 +4,7 @@
     "description": "una explicacion de mi extension",
     "manifest_version": 3,
     "permissions": ["activeTab"],
+    "host_permissions": ["https://*/*", "http://*/*"],
     "action": {
         "default_popup": "popup.html",
         "default_icon": {
@@ -32,10 +33,10 @@
           "matches": ["https://chat.openai.com/*"],
 
           "js": [
-            "componentes.js",
-            "gestorDeDatos.js",
-            "gpt.js",
-            "content-script.js"
+            "./content/componentes.js",
+            "./content/gestorDeDatos.js",
+            "./content/gpt.js",
+            "./content/content-script.js"
           ]
         }
       ]
