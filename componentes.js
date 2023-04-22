@@ -76,7 +76,7 @@ class AgenteCreacionDeTareas {
         if (parTareaSolucion.profundidad +1  <= ProfundidadConfigurada) {
             enviarTexto("Crearemos mas subtareas ya que la profundidad de la siguiente subtarea seria " + (parTareaSolucion.profundidad +1)  + " que es menor o igual a  " + ProfundidadConfigurada, "red");
             console.log("Crearemos mas subtareas ya que la profundidad de la siguiente subtarea seria " + (parTareaSolucion.profundidad +1)  + " que es menor o igual a  " + ProfundidadConfigurada, "red");
-            let mensaje = "Conociendo esta tarea \n \n " + parTareaSolucion.tarea + "\n información:  \n" + contexto + "  \n su ejecución \n " + parTareaSolucion.solucion + " \n en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo  La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n La respuesta tiene que tener este formato  Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ";
+            let mensaje = "Conociendo esta tarea \n \n \" " + parTareaSolucion.tarea + " \" \n\n usa esta información:  \n \" " + contexto.join(" \n\n ") + " \"  \n\n su ejecución \n\n " + parTareaSolucion.solucion + " \n\n en caso de que la tarea no se encuentre completada proporcione un objetivo nuevo que me permita completar este objetivo, caso contrario contesta \" true \" \n\n La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n\n La respuesta tiene que tener este formato \n\n Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ";
             var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
             let nuevaTarea = respuesta.replace("Tarea: ", "");
             let nuevoParTareaSolucion = new TareaSolucion(parTareaSolucion.profundidad + 1, nuevaTarea, "");
@@ -166,7 +166,7 @@ class AgenteDeEjecucionDeTareas {
                 throw new Error("tarea no es una cadena");
             }
             this.contexto = await encontrarTitulosSimilares(informacion, parTareaAtratar.tarea);
-            let mensaje = "  " + parTareaAtratar.tarea + " ejecuta la tarea , en caso de no tener información suficiente dime como conseguirla  información:   " + this.contexto + "";
+            let mensaje = " Ejecuta esta tarea \" " + parTareaAtratar.tarea + " \" \n\n aqui tienes información: \n\n \"  " + this.contexto + "  \" \n\n  En caso de no tener información suficiente dime como conseguirla";
             var solucion = await gpt.enviarMensaje(mensaje, "ejecucion");
             enviarTexto("Ejecutando tarea: " + parTareaAtratar.tarea + " --> " + solucion, "orange");
             parTareaAtratar.solucion = await solucion;
@@ -187,6 +187,31 @@ class AgenteDeEjecucionDeTareas {
 
 }
 agenteDeEjecucionDeTareas = new AgenteDeEjecucionDeTareas();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

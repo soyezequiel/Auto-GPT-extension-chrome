@@ -16,6 +16,7 @@ async function principal(nombre, objetivo) {
 }
 async function maquina(){
   if (continuar) {
+
     await agenteCreadorDeTareas.enviarTareas(colaDeTareas);
     ordenado = true; //se lo forza a activado devido a que el agente de priorizacion de tareas no funciona de forma estable
     if (ordenado) {
@@ -26,10 +27,9 @@ async function maquina(){
       await agenteDePriorizacionTareas.enviarTareasOrdenadas(colaDeTareas);
     }
     await agenteDeEjecucionDeTareas.enviarParTareaSolucion(agenteCreadorDeTareas);
-
     await maquina();
+    
   }
-
 }
 
 
