@@ -182,7 +182,7 @@ class AgenteDeEjecucionDeTareas {
         this.tareasEjecutadas=0;
     }
 
-   async tareasEjecutadas(){
+   async getTareasEjecutadas(){
         return this.tareasEjecutadas;
     }
 

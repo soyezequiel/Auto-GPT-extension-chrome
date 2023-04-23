@@ -12,8 +12,8 @@ async function principal(nombre, objetivo) {
    enviarTexto("Rendimiento: "+await gpt.rendimiento()  + " consultas por minuto a chatGPT ","white");
    enviarTexto("Cantidad de consultas: " +  await gpt.contador + " a chatGPT ","white");
    enviarTexto( "Tiempo de sesión:  "+ await gpt.tiempo() + " minutos  ","white");
-   enviarTexto( "Tareas creadas:  "+  colaDeTareas.getTareasTotales() );
-   enviarTexto( "Tareas ejecutadas:  "+  agenteDeEjecucionDeTareas.getTareasEjecutadas() );
+   enviarTexto( "Tareas creadas:  "+ await colaDeTareas.getTareasTotales() ,"white");
+   enviarTexto( "Tareas ejecutadas:  "+  await agenteDeEjecucionDeTareas.getTareasEjecutadas() ,"white");
 
    console.log(proceso.join(" \n\n"));
 
@@ -48,7 +48,7 @@ chrome.runtime.onMessage.addListener(function (mensaje, sender, respuesta) {
     const objetivo = mensaje.datos.objetivo; // Obtener el valor del segundo campo de consulta
     const retardo =mensaje.datos.retardo;
     console.log("retardo establecido: " + retardo);
-    gpt.establecerRetardo((retardo * 1000));
+    gpt.establecerRetardo((retardo * 1000)+ Math.floor(Math.random() * 2000));
 
 
     const numero = mensaje.datos.numero; // Obtener el valor del campo numérico deslizante
