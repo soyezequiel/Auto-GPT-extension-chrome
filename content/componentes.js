@@ -48,6 +48,11 @@ function calcularPuntajeSimilitud(cadena1, cadena2) {
 
 
 
+
+
+
+
+
 class AgenteCreacionDeTareas {
     constructor() {
         this.arregloDePar = [];

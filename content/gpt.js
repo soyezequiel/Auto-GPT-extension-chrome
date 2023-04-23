@@ -1,3 +1,62 @@
+class plantillaDePrompt{
+  constructor(plantilla,variablesDeEntradaPlantilla){
+    const objeto = {};
+    for (let i = 0; i < variablesDeEntradaPlantilla.length; i++) {
+      objeto[variablesDeEntradaPlantilla[i]] = null;
+    }
+    this.plantilla=plantilla;
+    this.variablesDeEntrada=objeto;
+    this.variablesDeEntradaPlantilla=variablesDeEntradaPlantilla;
+  }
+  reiniciar(){
+    const objeto = {};
+    for (let i = 0; i < this.variablesDeEntradaPlantilla.length; i++) {
+      objeto[this.variablesDeEntradaPlantilla[i]] = null;
+    }
+  }
+  devolverMensaje(){
+    let mensaje = this.plantilla;
+    const variables = this.variablesDeEntrada;
+
+    for (const variable in variables) {
+      if (Array.isArray(variables[variable])) {
+        variables[variable] = variables[variable].join(" , ");
+      }
+      mensaje = mensaje.replace(`{${variable}}`, variables[variable]);
+    }
+
+    return mensaje;
+  }
+  
+  asignarVariable(variable, valor){
+    if(this.variablesDeEntrada.hasOwnProperty(variable)){
+      this.variablesDeEntrada[variable] = valor;
+    } else {
+      console.log(`La variable ${variable} no existe en esta plantilla`);
+    }
+  }
+}
+
+
+
+const  promptDeEmpezarObjetivo=new plantillaDePrompt("Eres una inteligencia artificial de creación de tareas autónomas llamada AgentGPT. Tienes el siguiente objetivo {objetivo}. Crea una lista de cero a tres tareas que serán completadas por tu sistema de IA para que tu objetivo sea alcanzado más cercanamente o completamente. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse().", ["objetivo"]);
+promptDeEmpezarObjetivo.asignarVariable("objetivo","comprar pan");
+console.log(promptDeEmpezarObjetivo.devolverMensaje());
+
+
+const  promptDeEjecutarTarea=new plantillaDePrompt( "Eres una Inteligencia Artificial autónoma de ejecución de tareas llamada AgenteGPT. Tienes el siguiente objetivo {objetivo}. Tienes la siguiente tarea {tarea}. Ejecuta la tarea y devuelve la respuesta como una cadena de texto.", ["objetivo", "tarea"]);
+promptDeEjecutarTarea.asignarVariable("objetivo","comprar pan");
+promptDeEjecutarTarea.asignarVariable("tarea","ir a la panaderia");
+console.log(promptDeEjecutarTarea.devolverMensaje());
+
+
+const  promptDeCrearTarea=new plantillaDePrompt( "Eres un agente de creación de tareas de IA. Tienes el siguiente objetivo {objetivo}. Tienes las siguientes tareas incompletas {tareas} y acabas de ejecutar la siguiente tarea {ultimaTarea} y has recibido el siguiente resultado {resultado}. Basándote en esto, crea una nueva tarea que sea completada por tu sistema de IA SÓLO SI ES NECESARIO para que tu objetivo se alcance más de cerca o se alcance por completo. Regresa la respuesta como una matriz de cadenas que se pueden usar en JSON.parse() y NADA MÁS.", ["objetivo", "tareas", "ultimaTarea", "resultado"]);
+promptDeCrearTarea.asignarVariable("objetivo","comprar pan");
+promptDeCrearTarea.asignarVariable("tareas",["bbuscar pan","comer pan", "ir a la pana"]);
+promptDeCrearTarea.asignarVariable("ultimaTarea","ir a la panaderia");
+promptDeCrearTarea.asignarVariable("resultado","se intento ir pero la puerta estaba cerrada");
+console.log(promptDeCrearTarea.devolverMensaje());
+
 class ChatGPT {
   constructor(){
     this.inicio=null;
@@ -9,6 +68,9 @@ class ChatGPT {
     this.tiempoDeRetardo=retardo;
   }
 
+  async enviarPrompt(prompt){
+    this.enviarMensaje(prompt.devolverMensaje());
+  }
     async enviarMensaje(mensaje, chat) {
       enviarTexto("Pensando","gray");
       if(this.inicio == null){
