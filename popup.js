@@ -2,6 +2,34 @@
 console.log("popup.js");
 const form = document.querySelector('#formulario');
 
+
+
+function descargarArchivo() {
+  chrome.tabs.query({ active: true, currentWindow: true }, async function (tabs) {
+    await chrome.tabs.sendMessage(tabs[0].id, {
+      tipo: "txt",
+      datos: {
+        nombre: ""
+      }
+    });
+  });
+
+}
+
+
+
+
+// Obtener el botón por su ID
+const btn = document.getElementById('txt');
+
+// Agregar un Event Listener para el evento 'click'
+btn.addEventListener('click', () => {
+  // Aquí puedes agregar el código que deseas ejecutar cuando se hace clic en el botón
+  descargarArchivo();
+});
+
+
+
 /* Este código agrega un listener al evento "submit" de un formulario y previene su comportamiento por defecto. Luego, se obtienen los valores de los campos "nombre", "objetivo" y "numero" del formulario usando el método "querySelector". Finalmente, se envía un mensaje a la pestaña activa del navegador usando la API de Chrome con los valores de los campos como datos del mensaje.
 */
 form.addEventListener('submit', async (event) => {
