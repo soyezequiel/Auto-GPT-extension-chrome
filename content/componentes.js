@@ -57,7 +57,7 @@ class AgenteCreacionDeTareas {
     }
     async crearApartirDelObjetivo(nombre, objetivo) {
             this.reiniciar();
-            this.arregloDePar= await this._enviarPromptEmpezar(nombre,objetivo,gpt);
+            this.arregloDePar= await this._enviarPromptEmpezar(nombre,objetivo,gptOld,promptDeEmpezarObjetivo);
             console.log("objetivo: "+ objetivo);
             console.log("nombre: "  + nombre  );
             this._guardarObjetivo(nombre, objetivo,BdTareaSolucion);      
@@ -66,54 +66,31 @@ class AgenteCreacionDeTareas {
         var objsolucion = new TareaSolucion(0, nombre, objetivo);
         BdTareaSolucion.guardarEnMemoria(objsolucion);
     }
-    async _enviarPromptEmpezar(nombre,objetivo,gpt){
-        let mensaje = "Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres " + nombre + " y el objetivo es " + objetivo + ".   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp";
-        var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
-        // Procesar tareas para convertila en un array de tareas
-        const arrayTareas = respuesta.split("\n");
-        const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
-        const tareasArreglo = tareasArregloConTarea.map(tarea => tarea.replace(/^Tarea\d+: /, ''));
-        let arreglo=[];
-        for (let i = 0 ; i < tareasArreglo.length; i++) {
-            arreglo[i] = new TareaSolucion(0, tareasArreglo[i], "");
-        }
+    async _enviarPromptEmpezar(nombre,objetivo,gpt,prompt){
+        prompt.asignarVariable("nombre",nombre);
+        prompt.asignarVariable("objetivo",objetivo);
+        let arreglo=gpt.enviarPrompt(prompt,"creacion");       
         return arreglo;
     }
-    async _enviarPromptCrearTareas(parTareaSolucion,contexto,gpt){
-        let mensaje = "Conociendo esta tarea \n \n \" " + parTareaSolucion.tarea + " \" \n\n usa esta información:  \n \" " + contexto.join(" \n\n ") + " \"  \n\n su ejecución \n\n " + parTareaSolucion.solucion + " \n\n en caso de que la tarea no se encuentre completada proporcione una tarea nueva que me permita completar este objetivo, caso contrario contesta \" true \" \n\n La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n\n La respuesta tiene que tener este formato \n\n Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ";
-        var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
-        let string= await respuesta.replace("Tarea: ", "");
-        let tareasArreglo=[];
-        await tareasArreglo.push(await string);
-        
-        if (this.noMasSubTarea(tareasArreglo[0])){
-            enviarTexto("tarea completada ","blue");
-            console.log("Tarea completada");
-            tareasArreglo=[];
-        }    
-        
-        let arreglo=[];
-        for (let i = 0 ; i < tareasArreglo.length; i++) {
-            arreglo[i] = new TareaSolucion(0, tareasArreglo[i], "");
-        }
+
+    async _enviarPromptCrearTareas(parTareaSolucion,contexto,gpt,prompt){
+        prompt.asignarVariable("tarea",parTareaSolucion.tarea);
+        prompt.asignarVariable("contexto",contexto);
+        prompt.asignarVariable("solucion",parTareaSolucion.solucion);
+        var arreglo = await gpt.enviarPrompt(prompt,"creacion");
         return arreglo;
     }
-    async crearTareasApartirDeSoluciones(parTareaSolucion, contexto) {
-        return new Promise(async (resolve, reject) => {
+    async crearTareasApartirDeSoluciones(parTareaSolucion, contexto) { 
         this.reiniciar();        
-        this.arregloDePar= await this._enviarPromptCrearTareas(parTareaSolucion,contexto,gpt);  
+        this.arregloDePar= await this._enviarPromptCrearTareas(parTareaSolucion,contexto,gptOld,promptDeCrearTarea);  
         await BdTareaSolucion.guardarEnMemoria(parTareaSolucion);
-        resolve(this.arregloDePar);
-    });
+        this.arregloDePar; 
     }
     async enviarTareas(colaDeTareas) {
         console.log("\n AgenteCreacionDeTareas  ---->   colaDeTareas | Tipo: " + typeof await this.arregloDePar.map(todo => todo.tarea).join("\n Tarea:") + " Son  " + this.arregloDePar.length + "  \n\n  Tarea: " + (this.arregloDePar).map(todo => todo.tarea).join("\n Tarea: "));
         colaDeTareas.recibirTareas(this.arregloDePar, true);
     }
-    noMasSubTarea(cadena) {
-        let palabras = cadena.trim().toLowerCase().replace(/\.+/g, '').split(" ");
-        return palabras.length < 4 && palabras.includes("true");
-      }
+
 }
 var agenteCreadorDeTareas = new AgenteCreacionDeTareas();
 
