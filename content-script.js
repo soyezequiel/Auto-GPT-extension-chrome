@@ -515,7 +515,7 @@ async function enviarMensaje(mensaje, chat) {
   // console.log("mensaje " + mensaje);
   // Obtener el cuadro de texto
 
-  const textarea = document.querySelector('textarea[placeholder="Send a message..."]');
+  const textarea = document.querySelector('textarea[placeholder="Send a message."]');
   if (textarea !== null) {
     // Establecer el valor del cuadro de texto
     textarea.value = mensaje;
