@@ -56,24 +56,45 @@ class AgenteCreacionDeTareas {
         this.arregloDePar = [];
     }
     async crearApartirDelObjetivo(nombre, objetivo) {
-            this.getArregloDePar = [];
-            let mensaje = "Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres " + nombre + " y el objetivo es " + objetivo + ".   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp";
-            var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
-            // Procesar tareas para convertila en un array de tareas
-            const arrayTareas = respuesta.split("\n");
-            const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
-            const tareasArreglo = tareasArregloConTarea.map(tarea => tarea.replace(/^Tarea\d+: /, ''));
-            
-            
-            for (let i = 0 ; i < tareasArreglo.length; i++) {
-                this.arregloDePar[i] = new TareaSolucion(0, tareasArreglo[i], "");
-            }
-    
+            this.reiniciar();
+            this.arregloDePar= await this._enviarPromptEmpezar(nombre,objetivo,gpt);
             console.log("objetivo: " + objetivo);
             console.log("nombre: " + nombre);
-            var objsolucion = new TareaSolucion(0, nombre, objetivo);
-            BdTareaSolucion.guardarEnMemoria(objsolucion);
+            this._guardarObjetivo(nombre, objetivo,BdTareaSolucion);
+            
     }
+    _guardarObjetivo(nombre, objetivo,BdTareaSolucion){
+        var objsolucion = new TareaSolucion(0, nombre, objetivo);
+        BdTareaSolucion.guardarEnMemoria(objsolucion);
+    }
+
+    async _enviarPromptEmpezar(nombre,objetivo,gpt){
+        let mensaje = "Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres " + nombre + " y el objetivo es " + objetivo + ".   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp";
+        var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
+        // Procesar tareas para convertila en un array de tareas
+        const arrayTareas = respuesta.split("\n");
+        const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
+        const tareasArreglo = tareasArregloConTarea.map(tarea => tarea.replace(/^Tarea\d+: /, ''));
+        let arreglo=[];
+        for (let i = 0 ; i < tareasArreglo.length; i++) {
+            arreglo[i] = new TareaSolucion(0, tareasArreglo[i], "");
+        }
+        return arreglo;
+    }
+    async _enviarPromptCrearTareas(nombre,objetivo,gpt){
+        let mensaje = "Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres " + nombre + " y el objetivo es " + objetivo + ".   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp";
+        var respuesta = await gpt.enviarMensaje(mensaje, "creacion");
+        // Procesar tareas para convertila en un array de tareas
+        const arrayTareas = respuesta.split("\n");
+        const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
+        const tareasArreglo = tareasArregloConTarea.map(tarea => tarea.replace(/^Tarea\d+: /, ''));
+        let arreglo=[];
+        for (let i = 0 ; i < tareasArreglo.length; i++) {
+            arreglo[i] = new TareaSolucion(0, tareasArreglo[i], "");
+        }
+        return arreglo;
+    }
+
     async crearTareasApartirDeSoluciones(parTareaSolucion, contexto) {
         return new Promise(async (resolve, reject) => {
          this.arregloDePar = [];
