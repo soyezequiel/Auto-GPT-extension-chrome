@@ -7,7 +7,7 @@ async function principal(nombre, objetivo) {
   // aqui se enviara al agente de creacion de tareas el nombre y el objetivo para
   let texto = "Nombre: " + nombre + '\n' + "Objetivo: " + objetivo;
   enviarTexto(texto, "blue");
-  await agenteCreadorDeTareas.crearApartirDelObjetivo(nombre, objetivo);
+  await agenteCreadorDeTareas.crearApartirDelObjetivo(objetivo, nombre);
   await maquina();
    enviarTexto("Rendimiento: "+await gpt.rendimiento()  + " consultas por minuto a chatGPT ","white");
    enviarTexto("Cantidad de consultas: "+ await gpt.contador + " a chatGPT ","white");
@@ -24,7 +24,8 @@ async function maquina(){
     await agenteCreadorDeTareas.enviarTareas(colaDeTareas);
   //  await colaDeTareas.enviarTareas(agenteDePriorizacionTareas);
   //  await agenteDePriorizacionTareas.enviarTareasOrdenadas(colaDeTareas);     
-    let todasLasSoluciones = await BdTareaSolucion.obtenerarrayDeStringTodasLasSoluciones();
+   // let todasLasSoluciones = await BdTareaSolucion.obtenerarrayDeStringTodasLasSoluciones();
+    let todasLasSoluciones = await BdTareaSolucion.obtenerTodasLosPares();
     await colaDeTareas.moverTareaMasPrioritaria(agenteDeEjecucionDeTareas, todasLasSoluciones);
     await agenteDeEjecucionDeTareas.enviarParTareaSolucion(agenteCreadorDeTareas);
     await maquina();

@@ -27,7 +27,7 @@ class plantillaDePrompt{
 
     return mensaje;
   }
-  
+
   asignarVariable(variable, valor){
     if(this.variablesDeEntrada.hasOwnProperty(variable)){
       this.variablesDeEntrada[variable] = valor;
@@ -35,22 +35,26 @@ class plantillaDePrompt{
       console.log(`La variable ${variable} no existe en esta plantilla`);
     }
   }
+
+
+  
 }
 
 
 
-const  promptDeEmpezarObjetivo=new plantillaDePrompt("Eres una inteligencia artificial de creación de tareas autónomas llamada AgentGPT. Tienes el siguiente objetivo {objetivo}. Crea una lista de cero a tres tareas que serán completadas por tu sistema de IA para que tu objetivo sea alcanzado más cercanamente o completamente. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse().", ["objetivo"]);
+//const  promptDeEmpezarObjetivo=new plantillaDePrompt("Eres una inteligencia artificial de creación de tareas autónomas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Crea una lista de cero a tres tareas que serán completadas por tu sistema de IA para que tu objetivo sea alcanzado más cercanamente o completamente. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse().", ["objetivo"]);
+const  promptDeEmpezarObjetivo=new plantillaDePrompt("jueguemos un juego de roles Eres una inteligencia artificial de creación de tareas autónomas llamada MisterGPT. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse() Tienes el siguiente objetivo {objetivo}. Crea una lista de cero a tres tareas que serán completadas por tu sistema de IA para que tu objetivo sea alcanzado más cercanamente o completamente. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse().", ["objetivo"]);
 promptDeEmpezarObjetivo.asignarVariable("objetivo","comprar pan");
 console.log(promptDeEmpezarObjetivo.devolverMensaje());
 
 
-const  promptDeEjecutarTarea=new plantillaDePrompt( "Eres una Inteligencia Artificial autónoma de ejecución de tareas llamada AgenteGPT. Tienes el siguiente objetivo {objetivo}. Tienes la siguiente tarea {tarea}. Ejecuta la tarea y devuelve la respuesta como una cadena de texto.", ["objetivo", "tarea"]);
+const  promptDeEjecutarTarea=new plantillaDePrompt( "jueguemos un juego de roles Eres una Inteligencia Artificial autónoma de ejecución de tareas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Tienes la siguiente tarea {tarea}. Ejecuta la tarea y devuelve la respuesta como una cadena de texto.", ["objetivo", "tarea"]);
 promptDeEjecutarTarea.asignarVariable("objetivo","comprar pan");
 promptDeEjecutarTarea.asignarVariable("tarea","ir a la panaderia");
 console.log(promptDeEjecutarTarea.devolverMensaje());
 
 
-const  promptDeCrearTarea=new plantillaDePrompt( "Eres un agente de creación de tareas de IA. Tienes el siguiente objetivo {objetivo}. Tienes las siguientes tareas incompletas {tareas} y acabas de ejecutar la siguiente tarea {ultimaTarea} y has recibido el siguiente resultado {resultado}. Basándote en esto, crea una nueva tarea que sea completada por tu sistema de IA SÓLO SI ES NECESARIO para que tu objetivo se alcance más de cerca o se alcance por completo. Regresa la respuesta como una matriz de cadenas que se pueden usar en JSON.parse() y NADA MÁS.", ["objetivo", "tareas", "ultimaTarea", "resultado"]);
+const  promptDeCrearTarea=new plantillaDePrompt( "jueguemos un juego de roles  Eres un agente de creación de tareas de IA.Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse(). Tienes el siguiente objetivo {objetivo}. Tienes las siguientes tareas incompletas {tareas} y acabas de ejecutar la siguiente tarea {ultimaTarea} y has recibido el siguiente resultado {resultado}. Basándote en esto, crea una nueva tarea que sea completada por tu sistema de IA SÓLO SI ES NECESARIO para que tu objetivo se alcance más de cerca o se alcance por completo. Regresa la respuesta como una matriz de cadenas que se pueden usar en JSON.parse() y NADA MÁS.", ["objetivo", "tareas", "ultimaTarea", "resultado"]);
 promptDeCrearTarea.asignarVariable("objetivo","comprar pan");
 promptDeCrearTarea.asignarVariable("tareas",["bbuscar pan","comer pan", "ir a la pana"]);
 promptDeCrearTarea.asignarVariable("ultimaTarea","ir a la panaderia");
@@ -68,9 +72,22 @@ class ChatGPT {
     this.tiempoDeRetardo=retardo;
   }
 
-  async enviarPrompt(prompt){
-    this.enviarMensaje(prompt.devolverMensaje());
+  async enviarPrompt(prompt,chat){
+    return await this.obtenerObjetoDesdeString(await this.enviarMensaje(await prompt.devolverMensaje(),chat));
   }
+   obtenerObjetoDesdeString(str) {
+    const strfiltrado=obtenerCadenasEntreCorchetes(str);
+    if (strfiltrado.length > 0 ){
+      return JSON.parse(strfiltrado);
+    }else{
+      return [];
+    }
+    
+  }
+  
+  
+  
+  
     async enviarMensaje(mensaje, chat) {
       enviarTexto("Pensando","gray");
       if(this.inicio == null){
@@ -193,3 +210,30 @@ class ChatGPT {
   }
 
   const gpt = new ChatGPT();
+
+
+  function obtenerCadenasEntreCorchetes(str) {
+    const regex = /\[(.*?)\]/g; // Expresión regular para buscar los corchetes
+  
+    const matches = str.match(regex); // Buscamos todas las coincidencias
+  
+    if (matches) {
+      return matches; // Devolvemos el array con todas las coincidencias encontradas
+    } else {
+      return []; // Si no se encontraron coincidencias, devolvemos un array vacío
+    }
+  }
+  
+
+
+
+   const str="Claro, aquí te presento una lista de tareas que podrían ser útiles para lograr el objetivo de comprar agua:  css  Copy code  [  \"Identificar las tiendas cercanas que venden agua\",  \"Verificar la disponibilidad de agua en las tiendas seleccionadas\",  \"Seleccionar la tienda con el mejor precio/calidad y comprar el agua necesaria\"]  Espero que esto te ayude a lograr tu objetivo de comprar agua. Si tienes alguna otra pregunta, no dudes en preguntar.";
+  //const str=" [  \"Identificar las tiendas cercanas que venden agua\",  \"Verificar la disponibilidad de agua en las tiendas seleccionadas\",  \"Seleccionar la tienda con el mejor precio/calidad y comprar el agua necesaria\"]  ";
+
+/*
+  console.log(strfiltrado);
+  //const obj  =gpt.obtenerObjetoDesdeString(str);
+  const obj  =  
+
+  console.log("respuesta: " + JSON.stringify(obj));
+  */

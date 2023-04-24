@@ -84,6 +84,9 @@ class BaseDeDatosTareaSolucion {
 
         return solucionesArray;
     }
+    obtenerTodasLosPares(){
+        return this.db.getAll();
+     }
 
     async guardarEnMemoria(parTareaSolucion) {
         //guarda en memoria
