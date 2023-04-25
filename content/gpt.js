@@ -83,15 +83,13 @@ console.log(promptDeCrearTarea.devolverMensaje());
 */
 
 
-class InteraccionConPagina {
+class PaginaWeb {
   identificarEntradaDeTexto() {
     this.textarea = document.querySelector('textarea[placeholder="Send a message."]');
   }
   ingresarTexto(mensaje) {
     this.textarea.value = mensaje;
   }
-
-
   presionarAceptar() {
     // Crear un evento keydown para simular presionar la tecla Enter
     const event = new KeyboardEvent('keydown', {
@@ -99,7 +97,6 @@ class InteraccionConPagina {
       cancelable: true,
       keyCode: 13,
     });
-
     // Desencadenar el evento keydown
     this.textarea.dispatchEvent(event);
   }
@@ -108,7 +105,6 @@ class InteraccionConPagina {
     const ultimoElemento = elementos[elementos.length - 1];
     return ultimoElemento.textContent.trim();
   }
-
   seleccionarChat(nombre) {
     // codigo para seleccionar un chat segun su nombre-------------
     // Asignar el nombre del elemento a buscar a una variable
@@ -160,9 +156,9 @@ class InteraccionConPagina {
   } */
 }
 
-var web = new InteraccionConPagina();
+var web = new PaginaWeb();
 
-class ChatGPT {
+class interprete {
   constructor(web) {
     this.inicio = null;
     this.contador = 0;
@@ -173,11 +169,10 @@ class ChatGPT {
   establecerRetardo(retardo) {
     this.tiempoDeRetardo = retardo;
   }
-
   async enviarPrompt(prompt, chat) {
-    return await this.obtenerObjetoDesdeString(await this.enviarMensaje(await prompt.devolverMensaje(), chat));
+    return await this._obtenerObjetoDesdeString(await this.enviarMensaje(await prompt.devolverMensaje(), chat));
   }
-  obtenerObjetoDesdeString(str) {
+  _obtenerObjetoDesdeString(str) {
     const strfiltrado = obtenerCadenasEntreCorchetes(str);
     if (strfiltrado.length > 0) {
       return JSON.parse(strfiltrado);
@@ -234,7 +229,6 @@ class ChatGPT {
     }
 
   }
-
   rendimiento() {
     return Math.round((this.contador / this.tiempo()));
   }
@@ -243,16 +237,16 @@ class ChatGPT {
   }
 }
 
-class chatGPTold extends ChatGPT {
+class interpreteOld extends interprete {
 
   constructor(web) {
     super(web);
   }
   async enviarPrompt(prompt, chat) {
-    return await this.obtenerObjetoDesdeString(await this.enviarMensaje(await prompt.devolverMensaje(), chat));
+    return await this._obtenerObjetoDesdeString(await this.enviarMensaje(await prompt.devolverMensaje(), chat));
   }
 
-  obtenerObjetoDesdeString(str) {
+  _obtenerObjetoDesdeString(str) {
 
     const arrayTareas = str.split("\n");
     const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
@@ -261,14 +255,14 @@ class chatGPTold extends ChatGPT {
     for (let i = 0; i < tareasArreglo.length; i++) {
       arreglo[i] = new TareaSolucion(0, tareasArreglo[i], "");
     }
-    if (this.noMasSubTarea(arreglo[0].tarea)) {
+    if (this._noMasSubTarea(arreglo[0].tarea)) {
       enviarTexto("tarea completada ", "blue");
       console.log("Tarea completada");
       arreglo = [];
     }
     return arreglo;
   }
-  noMasSubTarea(cadena) {
+  _noMasSubTarea(cadena) {
     let palabras = cadena.trim().toLowerCase().replace(/\.+/g, '').split(" ");
     return palabras.length < 4 && palabras.includes("true");
   }
@@ -276,11 +270,5 @@ class chatGPTold extends ChatGPT {
 }
 
 
-
-
-
-
-
-
-const gpt = new ChatGPT(web);
-const gptOld = new chatGPTold(web);
+const gpt = new interprete(web);
+const gptOld = new interpreteOld(web);
