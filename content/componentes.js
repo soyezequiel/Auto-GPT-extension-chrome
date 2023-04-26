@@ -1,5 +1,18 @@
+
+
+
+
+
+
+
+
+
+
+
+
 //funciones de apoyo
 var proceso=[];
+/*
 function enviarTexto(texto, color) {
     proceso.push(texto);
     if (chrome.runtime && chrome.runtime.sendMessage) {
@@ -12,6 +25,7 @@ function enviarTexto(texto, color) {
         });
     }
 }
+*/
 function encontrarTitulosSimilares(soluciones, tarea) {
     // Creamos un objeto para almacenar los puntajes de similitud de cada título
     const similitud = {};
@@ -92,7 +106,6 @@ class AgenteCreacionDeTareas {
     }
 
 }
-var agenteCreadorDeTareas = new AgenteCreacionDeTareas();
 
 
 
@@ -126,7 +139,8 @@ class ColaDeTareas {
             let string = await BdTarea.obtenerStringTareas();
             for (let i = 0; i < arregloDePar.length; i++) {
                 this.tareasTotales++;
-                enviarTexto("Tarea " + this.tareasTotales + " agregada: " + arregloDePar[i].tarea, "green");
+                interfaz.imprimirTarea(this.tareasTotales,arregloDePar[i].tarea);
+                
             }
         }else{
             console.log("No hay tareas nuevas");
@@ -143,9 +157,8 @@ class ColaDeTareas {
         console.log("\n ColaDeTareas  ----> agenteDeEjecucionDeTareas | Tipo: " + typeof parTareaAtratar.tarea + " \n\n" + parTareaAtratar.tarea);
         await agenteDeEjecucionDeTareas.recibirTarea(parTareaAtratar, informacion);
      }else{
-        console.log("No hay mas tareas, felicitaciones");
-        enviarTexto("Se terminaron las tareas","red");
-        continuar=false;
+        interfaz.imprimirNoHayTareas();
+        this.continuar=false;
     }
     }
     async enviarTareas(agenteDePriorizacionTareas) {
@@ -154,13 +167,12 @@ class ColaDeTareas {
         console.log("\n ColaDeTareas  ---->  agenteDePriorizacionTareas | Tipo: " + typeof this.arregloDeTareas.map(todo => todo.tarea).join(", ") + "\n \n  Tarea: " + (this.arregloDeTareas).map(todo => todo.tarea).join("\n Tarea: "));
         agenteDePriorizacionTareas.recibirTareas(this.arregloDeTareas);
     }else{
-        console.log("No hay mas tareas, felicitaciones");
-        enviarTexto("Se terminaron las tareas","red");
-        continuar=false;
+        interfaz.imprimirNoHayTareas();
+        this.continuar=false;
     }
 }
 }
-var colaDeTareas = new ColaDeTareas();
+
 
 
 
@@ -191,8 +203,9 @@ class AgenteDeEjecucionDeTareas {
             this.contexto = await encontrarTitulosSimilares(informacion, parTareaAtratar.tarea);
             let mensaje = " Ejecuta esta tarea \" " + parTareaAtratar.tarea + " \" \n\n aqui tienes información: \n\n \"  " + this.contexto + "  \" \n\n  En caso de no tener información suficiente dime como conseguirla";
             var solucion = await gpt.enviarMensaje(mensaje, "ejecucion");
-            enviarTexto("Ejecutando tarea: " + parTareaAtratar.tarea + " --> " + solucion, "orange");
+            
             parTareaAtratar.solucion = await solucion;
+            interfaz.imprimirEjecucion(parTareaAtratar);
             this.parTareaSolucion = await parTareaAtratar;
             this.tareasEjecutadas++;
         } catch (error) {
@@ -210,7 +223,6 @@ class AgenteDeEjecucionDeTareas {
 
 
 }
-agenteDeEjecucionDeTareas = new AgenteDeEjecucionDeTareas();
 
 
 
@@ -218,10 +230,59 @@ agenteDeEjecucionDeTareas = new AgenteDeEjecucionDeTareas();
 
 
 
+class Maquina{
+    constructor(){   
+      this.agenteCreadorDeTareas=new AgenteCreacionDeTareas(); 
+      this.colaDeTareas= new ColaDeTareas();
+      this.agenteDeEjecucionDeTareas= new AgenteDeEjecucionDeTareas();
+      //  this.memoria =
+      this.continuar=false;
+      
+    }
+  
+    async empezar(nombre, objetivo){
+      this.reiniciar();
+      await this.agenteCreadorDeTareas.crearApartirDelObjetivo(nombre, objetivo);
+      this.continuar=true;
+      await this.recursivo();
+    }
+  
+    async recursivo(){
+        
+      if (this.continuar) {
+    
+        await this.agenteCreadorDeTareas.enviarTareas(this.colaDeTareas);
+      //  await colaDeTareas.enviarTareas(agenteDePriorizacionTareas);
+      //  await agenteDePriorizacionTareas.enviarTareasOrdenadas(colaDeTareas);     
+      let  todasLasSoluciones = await BdTareaSolucion.obtenerarrayDeStringTodasLasSoluciones();
+      console.log(todasLasSoluciones);
+        await this.colaDeTareas.moverTareaMasPrioritaria(this.agenteDeEjecucionDeTareas, todasLasSoluciones);
+        await this.agenteDeEjecucionDeTareas.enviarParTareaSolucion(this.agenteCreadorDeTareas);
+        await this.recursivo();
+    
+      }
+    }
+    reiniciar(){
+    this.agenteCreadorDeTareas.reiniciar();
+    this.colaDeTareas.reiniciar();
+    this.agenteDeEjecucionDeTareas.reiniciar();
+    }
+
+
+    getTareasTotales(){
+        return this.colaDeTareas.getTareasTotales();
+    }
+    getTareasEjecutadas(){
+        return this.agenteDeEjecucionDeTareas.getTareasEjecutadas();
+    }
 
 
 
-
+  
+  }
+  
+  
+  var maquina=new Maquina();
 
 
 
@@ -257,7 +318,7 @@ class AgentePriorizacionDeTareas {
 
         var respuesta = await gpt.enviarMensaje(mensaje, "prioridad");
         
-        enviarTexto("Ordenando","white");
+        interfaz.imprimirPriorizando();
         // Procesar tareas para convertila en un array de tareas
         const arrayTareas = respuesta.split("\n");
         const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");

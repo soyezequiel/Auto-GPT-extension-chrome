@@ -45,20 +45,20 @@ const promptDeEmpezarObjetivo = new plantillaDePrompt("Crea un plan de 3 tareas 
 
 promptDeEmpezarObjetivo.asignarVariable("nombre", "este es el nombre");
 promptDeEmpezarObjetivo.asignarVariable("objetivo", "este es el objetivo");
-console.log(promptDeEmpezarObjetivo.devolverMensaje());
+//console.log(promptDeEmpezarObjetivo.devolverMensaje());
 
 
 const promptDeEjecutarTarea = new plantillaDePrompt("jueguemos un juego de roles Eres una Inteligencia Artificial autónoma de ejecución de tareas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Tienes la siguiente tarea {tarea}. Ejecuta la tarea y devuelve la respuesta como una cadena de texto.", ["objetivo", "tarea"]);
 promptDeEjecutarTarea.asignarVariable("objetivo", "comprar pan");
 promptDeEjecutarTarea.asignarVariable("tarea", "ir a la panaderia");
-console.log(promptDeEjecutarTarea.devolverMensaje());
+//console.log(promptDeEjecutarTarea.devolverMensaje());
 
 
 const promptDeCrearTarea = new plantillaDePrompt("Conociendo esta tarea \n \n \"  {tarea} \" \n\n usa esta información:  \n \"   {contexto}  \"  \n\n su ejecución \n\n  {solucion} \n\n en caso de que la tarea no se encuentre completada proporcione una tarea nueva que me permita completar este objetivo, caso contrario contesta \" true \" \n\n La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n\n La respuesta tiene que tener este formato \n\n Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ", ["tarea", "contexto", "solucion"]);
 promptDeCrearTarea.asignarVariable("tarea", "comprar pan");
 promptDeCrearTarea.asignarVariable("contexto", "ir a la panaderia");
 promptDeCrearTarea.asignarVariable("solucion", "se intento ir pero la puerta estaba cerrada");
-console.log(promptDeCrearTarea.devolverMensaje());
+//console.log(promptDeCrearTarea.devolverMensaje());
 
 /* //prompt nuevos y experimentales
 //const  promptDeEmpezarObjetivo=new plantillaDePrompt("Eres una inteligencia artificial de creación de tareas autónomas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Crea una lista de cero a tres tareas que serán completadas por tu sistema de IA para que tu objetivo sea alcanzado más cercanamente o completamente. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse().", ["objetivo"]);
@@ -102,8 +102,16 @@ class PaginaWeb {
   }
   obtenerRespuesta() {
     const elementos = document.querySelectorAll('.prose');
-    const ultimoElemento = elementos[elementos.length - 1];
-    return ultimoElemento.textContent.trim();
+
+    if (!elementos.length) {
+      return { error: 'No se encontraron elementos con la clase "prose" '};      
+    } else {
+
+      const ultimoElemento = elementos[elementos.length - 1];
+      return {respuesta:  ultimoElemento.textContent.trim() };
+    }
+
+
   }
   seleccionarChat(nombre) {
     // codigo para seleccionar un chat segun su nombre-------------
@@ -169,6 +177,9 @@ class controlador {
   establecerRetardo(retardo) {
     this.tiempoDeRetardo = retardo;
   }
+  getRetardo() {
+    return this.tiempoDeRetardo;
+  }
   async enviarPrompt(prompt, chat) {
     return await this._obtenerObjetoDesdeString(await this.enviarMensaje(await prompt.devolverMensaje(), chat));
   }
@@ -182,7 +193,7 @@ class controlador {
 
   }
   async enviarMensaje(mensaje, chat) {
-    enviarTexto("Pensando", "gray");
+    interfaz.imprimirPensando();
     if (this.inicio == null) {
       this.inicio = new Date();
     } else {
@@ -220,7 +231,15 @@ class controlador {
           }
         }, 100);
       });
-      var respuesta = this.web.obtenerRespuesta();
+      var respuesta;
+      const resultado = this.web.obtenerRespuesta();
+      if (resultado.error) {
+        console.error(resultado.error); // muestra el mensaje de error en la consola
+      } else {
+        respuesta =resultado.respuesta;
+      }
+
+
       //  chrome.runtime.sendMessage({ tipo: "respuesta", datos: { valor: respuesta } });
       // console.log("respuesta:  " + respuesta );
       return respuesta;
@@ -256,9 +275,8 @@ class controladorOld extends controlador {
       arreglo[i] = new TareaSolucion(0, tareasArreglo[i], "");
     }
     if (this._noMasSubTarea(arreglo[0].tarea)) {
-      enviarTexto("tarea completada ", "blue");
-      console.log("Tarea completada");
-      arreglo = [];
+      interfaz.imprimirTareaCompletada(),
+        arreglo = [];
     }
     return arreglo;
   }
