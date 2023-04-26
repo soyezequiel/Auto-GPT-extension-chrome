@@ -8,7 +8,7 @@ class plantillaDePrompt {
     this.variablesDeEntrada = objeto;
     this.variablesDeEntradaPlantilla = variablesDeEntradaPlantilla;
   }
-  reiniciar() {
+  _reiniciar() {
     const objeto = {};
     for (let i = 0; i < this.variablesDeEntradaPlantilla.length; i++) {
       objeto[this.variablesDeEntradaPlantilla[i]] = null;
@@ -158,7 +158,7 @@ class PaginaWeb {
 
 var web = new PaginaWeb();
 
-class interprete {
+class controlador {
   constructor(web) {
     this.inicio = null;
     this.contador = 0;
@@ -237,7 +237,7 @@ class interprete {
   }
 }
 
-class interpreteOld extends interprete {
+class controladorOld extends controlador {
 
   constructor(web) {
     super(web);
@@ -270,5 +270,5 @@ class interpreteOld extends interprete {
 }
 
 
-const gpt = new interprete(web);
-const gptOld = new interpreteOld(web);
+const gpt = new controlador(web);
+const gptOld = new controladorOld(web);
