@@ -1,5 +1,97 @@
-class plantillaDePrompt {
-  constructor(plantilla, variablesDeEntradaPlantilla) {
+class InterpreteJson {
+  obtenerObjetoDesdeString(str) {
+
+    const strfiltrado = this._obtenerCadenasEntreCorchetes(str);
+    if (strfiltrado.length > 0 ) {
+      console.log("resultado de strfiltraado  " + strfiltrado);
+      const array = JSON.parse(strfiltrado);
+      console.log("resultado de objeto json  " + array.join("\n ----->") + " \n \ n o " + array[0]);
+      let tareas = [];
+      for (let i = 0; i < array.length; i++) {
+        tareas.push(new TareaSolucion(0, array[i], ""));
+      }
+      return tareas;
+    } else {
+        return [];
+      
+      
+    }
+  }
+  
+   async _obtenerCadenasEntreCorchetes(str) {
+    const regex = /\[(.*?)\]/g;
+    const matches = await  str.match(regex);
+    console.log("entrada: " + typeof str);
+    if ( await matches == null){
+      console.error("no se obtuvo nada que este dentro de unos corchetes");
+    }else{
+
+      console.log("salida:   " + matches[0]);
+      return matches[0];
+    }
+
+  }
+  
+
+
+/*
+  _obtenerCadenasEntreCorchetes(texto) {
+    const corchetesAbiertos = [];
+    const cadenas = [];
+    let cadenaActual = "";
+    console.log("cantidad de caracteres "+texto.length);
+    for (let i = 0; i < texto.length; i++) {
+      if (texto[i] === "[") {
+        corchetesAbiertos.push(i);
+      } else if (texto[i] === "]") {
+        if (corchetesAbiertos.length > 0) {
+          const indiceCorcheteAbierto = corchetesAbiertos.pop();
+          cadenaActual = texto.substring(indiceCorcheteAbierto, i + 1);
+          cadenas.push(cadenaActual);
+        }
+      }
+    }
+
+    if (corchetesAbiertos.length > 0) {
+      console.error("Error: Hay corchetes abiertos que no se cerraron.");
+    } else if (cadenas.length === 0) {
+      console.error("No se encontraron cadenas entre corchetes.");
+      return "error";
+    } else {
+      return cadenas;
+    }
+  }
+*/
+}
+
+class InterpreteOld {
+  obtenerObjetoDesdeString(str) {
+
+    const arrayTareas = str.split("\n");
+    const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
+    const tareasArreglo = tareasArregloConTarea.map(tarea => tarea.replace(/^Tarea\d+: /, ''));
+    let arreglo = [];
+    for (let i = 0; i < tareasArreglo.length; i++) {
+      arreglo[i] = new TareaSolucion(0, tareasArreglo[i], "");
+    }
+    if (this._noMasSubTarea(arreglo[0].tarea)) {
+      interfaz.imprimirTareaCompletada(),
+        arreglo = [];
+    }
+    return arreglo;
+  }
+  _noMasSubTarea(cadena) {
+    let palabras = cadena.trim().toLowerCase().replace(/\.+/g, '').split(" ");
+    return palabras.length < 4 && palabras.includes("true");
+  }
+
+}
+const interpreteJson = new InterpreteJson();
+const interpreteOld = new InterpreteOld();
+
+class PlantillaDePrompt {
+  constructor(plantilla, variablesDeEntradaPlantilla, interprete) {
+    this.interprete = interprete;
     const objeto = {};
     for (let i = 0; i < variablesDeEntradaPlantilla.length; i++) {
       objeto[variablesDeEntradaPlantilla[i]] = null;
@@ -39,46 +131,48 @@ class plantillaDePrompt {
 
 
 }
-
-//const  promptDeEmpezarObjetivo=new plantillaDePrompt("Eres una inteligencia artificial de creación de tareas autónomas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Crea una lista de cero a tres tareas que serán completadas por tu sistema de IA para que tu objetivo sea alcanzado más cercanamente o completamente. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse().", ["objetivo"]);
-const promptDeEmpezarObjetivo = new plantillaDePrompt("Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres {nombre} y el objetivo es {objetivo} .   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp", ["nombre", "objetivo"]);
+/* */
+//const  promptDeEmpezarObjetivo=new PlantillaDePrompt("Eres una inteligencia artificial de creación de tareas autónomas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Crea una lista de cero a tres tareas que serán completadas por tu sistema de IA para que tu objetivo sea alcanzado más cercanamente o completamente. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse().", ["objetivo"],interpreteOld);
+const promptDeEmpezarObjetivo = new PlantillaDePrompt("Crea un plan de 3 tareas concisas y específicas para alcanzar el objetivo   tu eres {nombre} y el objetivo es {objetivo} .   cada tarea no debe de superar los 280 caracteres   La primera tarea debe de ser la tarea inicial.   La tercera tarea debe ser la última que se debe de completar para cumplir el objetivo   se conciso, \n La respuesta tiene que tener este formato  Tarea1: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea2: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  Tarea3: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp", ["nombre", "objetivo"],interpreteOld);
 
 promptDeEmpezarObjetivo.asignarVariable("nombre", "este es el nombre");
 promptDeEmpezarObjetivo.asignarVariable("objetivo", "este es el objetivo");
 //console.log(promptDeEmpezarObjetivo.devolverMensaje());
 
 
-const promptDeEjecutarTarea = new plantillaDePrompt("jueguemos un juego de roles Eres una Inteligencia Artificial autónoma de ejecución de tareas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Tienes la siguiente tarea {tarea}. Ejecuta la tarea y devuelve la respuesta como una cadena de texto.", ["objetivo", "tarea"]);
+const promptDeEjecutarTarea = new PlantillaDePrompt("jueguemos un juego de roles Eres una Inteligencia Artificial autónoma de ejecución de tareas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Tienes la siguiente tarea {tarea}. Ejecuta la tarea y devuelve la respuesta como una cadena de texto.", ["objetivo", "tarea"], interpreteOld);
 promptDeEjecutarTarea.asignarVariable("objetivo", "comprar pan");
 promptDeEjecutarTarea.asignarVariable("tarea", "ir a la panaderia");
 //console.log(promptDeEjecutarTarea.devolverMensaje());
 
 
-const promptDeCrearTarea = new plantillaDePrompt("Conociendo esta tarea \n \n \"  {tarea} \" \n\n usa esta información:  \n \"   {contexto}  \"  \n\n su ejecución \n\n  {solucion} \n\n en caso de que la tarea no se encuentre completada proporcione una tarea nueva que me permita completar este objetivo, caso contrario contesta \" true \" \n\n La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n\n La respuesta tiene que tener este formato \n\n Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ", ["tarea", "contexto", "solucion"]);
+const promptDeCrearTarea = new PlantillaDePrompt("Conociendo esta tarea \n \n \"  {tarea} \" \n\n usa esta información:  \n \"   {contexto}  \"  \n\n su ejecución \n\n  {solucion} \n\n en caso de que la tarea no se encuentre completada proporcione una tarea nueva que me permita completar este objetivo, caso contrario contesta \" true \" \n\n La tarea debe ser concisa y específicas para cumplir la tarea  La tarea no debe de superar los 280 caracteres   se conciso  \n\n La respuesta tiene que tener este formato \n\n Tarea: pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp  ", ["tarea", "contexto", "solucion"],interpreteOld);
 promptDeCrearTarea.asignarVariable("tarea", "comprar pan");
 promptDeCrearTarea.asignarVariable("contexto", "ir a la panaderia");
 promptDeCrearTarea.asignarVariable("solucion", "se intento ir pero la puerta estaba cerrada");
 //console.log(promptDeCrearTarea.devolverMensaje());
 
-/* //prompt nuevos y experimentales
-//const  promptDeEmpezarObjetivo=new plantillaDePrompt("Eres una inteligencia artificial de creación de tareas autónomas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Crea una lista de cero a tres tareas que serán completadas por tu sistema de IA para que tu objetivo sea alcanzado más cercanamente o completamente. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse().", ["objetivo"]);
-const  promptDeEmpezarObjetivo=new plantillaDePrompt("jueguemos un juego de roles Eres una inteligencia artificial de creación de tareas autónomas llamada MisterGPT. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse() Tienes el siguiente objetivo {objetivo}. Crea una lista de cero a tres tareas que serán completadas por tu sistema de IA para que tu objetivo sea alcanzado más cercanamente o completamente. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse().", ["objetivo"]);
-promptDeEmpezarObjetivo.asignarVariable("objetivo","comprar pan");
-console.log(promptDeEmpezarObjetivo.devolverMensaje());
+
+/*
+//prompt nuevos y experimentales -----------------------------------------------------------------------------------------------------------------------------------------------
+//const  promptDeEmpezarObjetivo=new PlantillaDePrompt("Eres una inteligencia artificial de creación de tareas autónomas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Crea una lista de cero a tres tareas que serán completadas por tu sistema de IA para que tu objetivo sea alcanzado más cercanamente o completamente. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse().", ["objetivo"]),interpreteJson;
+const promptDeEmpezarObjetivo = new PlantillaDePrompt("jueguemos un juego de roles Eres una inteligencia artificial de creación de tareas autónomas llamada MisterGPT. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse() Tienes el siguiente objetivo {objetivo}. Crea una lista de cero a tres tareas que serán completadas por tu sistema de IA para que tu objetivo sea alcanzado más cercanamente o completamente. Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse().", ["objetivo"], interpreteJson);
+promptDeEmpezarObjetivo.asignarVariable("objetivo", "comprar pan");
+//console.log(promptDeEmpezarObjetivo.devolverMensaje());
 
 
-const  promptDeEjecutarTarea=new plantillaDePrompt( "jueguemos un juego de roles Eres una Inteligencia Artificial autónoma de ejecución de tareas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Tienes la siguiente tarea {tarea}. Ejecuta la tarea y devuelve la respuesta como una cadena de texto.", ["objetivo", "tarea"]);
+const  promptDeEjecutarTarea=new PlantillaDePrompt( "jueguemos un juego de roles Eres una Inteligencia Artificial autónoma de ejecución de tareas llamada MisterGPT. Tienes el siguiente objetivo {objetivo}. Tienes la siguiente tarea {tarea}. Ejecuta la tarea y devuelve la respuesta como una cadena de texto.", ["objetivo", "tarea"],interpreteJson);
 promptDeEjecutarTarea.asignarVariable("objetivo","comprar pan");
 promptDeEjecutarTarea.asignarVariable("tarea","ir a la panaderia");
-console.log(promptDeEjecutarTarea.devolverMensaje());
+//console.log(promptDeEjecutarTarea.devolverMensaje());
 
 
-const  promptDeCrearTarea=new plantillaDePrompt( "jueguemos un juego de roles  Eres un agente de creación de tareas de IA.Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse(). Tienes el siguiente objetivo {objetivo}. Tienes las siguientes tareas incompletas {tareas} y acabas de ejecutar la siguiente tarea {ultimaTarea} y has recibido el siguiente resultado {resultado}. Basándote en esto, crea una nueva tarea que sea completada por tu sistema de IA SÓLO SI ES NECESARIO para que tu objetivo se alcance más de cerca o se alcance por completo. Regresa la respuesta como una matriz de cadenas que se pueden usar en JSON.parse() y NADA MÁS.", ["objetivo", "tareas", "ultimaTarea", "resultado"]);
-promptDeCrearTarea.asignarVariable("objetivo","comprar pan");
-promptDeCrearTarea.asignarVariable("tareas",["bbuscar pan","comer pan", "ir a la pana"]);
-promptDeCrearTarea.asignarVariable("ultimaTarea","ir a la panaderia");
-promptDeCrearTarea.asignarVariable("resultado","se intento ir pero la puerta estaba cerrada");
-console.log(promptDeCrearTarea.devolverMensaje());
+const promptDeCrearTarea = new PlantillaDePrompt("jueguemos un juego de roles  Eres un agente de creación de tareas de IA.Devuelve la respuesta como una matriz de cadenas que se pueden utilizar en JSON.parse() ej [\"string\",\"string\",\"string\"]. Tienes el siguiente objetivo {objetivo}. Tienes las siguientes tareas incompletas {tareas} y acabas de ejecutar la siguiente tarea {ultimaTarea} y has recibido el siguiente resultado {resultado}. Basándote en esto, crea una nueva tarea que sea completada por tu sistema de IA SÓLO SI ES NECESARIO para que tu objetivo se alcance más de cerca o se alcance por completo. Regresa la respuesta como una matriz de cadenas que se pueden usar en JSON.parse() y NADA MÁS.", ["objetivo", "tareas", "ultimaTarea", "resultado"], interpreteJson);
+promptDeCrearTarea.asignarVariable("objetivo", "comprar pan");
+promptDeCrearTarea.asignarVariable("tareas", ["bbuscar pan", "comer pan", "ir a la pana"]);
+promptDeCrearTarea.asignarVariable("ultimaTarea", "ir a la panaderia");
+promptDeCrearTarea.asignarVariable("resultado", "se intento ir pero la puerta estaba cerrada");
+//console.log(promptDeCrearTarea.devolverMensaje());
 
 */
 
@@ -104,11 +198,11 @@ class PaginaWeb {
     const elementos = document.querySelectorAll('.prose');
 
     if (!elementos.length) {
-      return { error: 'No se encontraron elementos con la clase "prose" '};      
+      return { error: 'No se encontraron elementos con la clase "prose" ' };
     } else {
 
       const ultimoElemento = elementos[elementos.length - 1];
-      return {respuesta:  ultimoElemento.textContent.trim() };
+      return { respuesta: ultimoElemento.textContent.trim() };
     }
 
 
@@ -181,17 +275,12 @@ class controlador {
     return this.tiempoDeRetardo;
   }
   async enviarPrompt(prompt, chat) {
-    return await this._obtenerObjetoDesdeString(await this.enviarMensaje(await prompt.devolverMensaje(), chat));
+    const mensaje = await prompt.devolverMensaje();
+    const respuesta = await this.enviarMensaje(mensaje, chat);
+    const objeto = await prompt.interprete.obtenerObjetoDesdeString(respuesta);
+    return objeto;
   }
-  _obtenerObjetoDesdeString(str) {
-    const strfiltrado = obtenerCadenasEntreCorchetes(str);
-    if (strfiltrado.length > 0) {
-      return JSON.parse(strfiltrado);
-    } else {
-      return [];
-    }
 
-  }
   async enviarMensaje(mensaje, chat) {
     interfaz.imprimirPensando();
     if (this.inicio == null) {
@@ -236,7 +325,7 @@ class controlador {
       if (resultado.error) {
         console.error(resultado.error); // muestra el mensaje de error en la consola
       } else {
-        respuesta =resultado.respuesta;
+        respuesta = resultado.respuesta;
       }
 
 
@@ -256,6 +345,8 @@ class controlador {
   }
 }
 
+
+/*
 class controladorOld extends controlador {
 
   constructor(web) {
@@ -264,29 +355,8 @@ class controladorOld extends controlador {
   async enviarPrompt(prompt, chat) {
     return await this._obtenerObjetoDesdeString(await this.enviarMensaje(await prompt.devolverMensaje(), chat));
   }
-
-  _obtenerObjetoDesdeString(str) {
-
-    const arrayTareas = str.split("\n");
-    const tareasArregloConTarea = arrayTareas.filter(tarea => tarea.trim() !== "");
-    const tareasArreglo = tareasArregloConTarea.map(tarea => tarea.replace(/^Tarea\d+: /, ''));
-    let arreglo = [];
-    for (let i = 0; i < tareasArreglo.length; i++) {
-      arreglo[i] = new TareaSolucion(0, tareasArreglo[i], "");
-    }
-    if (this._noMasSubTarea(arreglo[0].tarea)) {
-      interfaz.imprimirTareaCompletada(),
-        arreglo = [];
-    }
-    return arreglo;
-  }
-  _noMasSubTarea(cadena) {
-    let palabras = cadena.trim().toLowerCase().replace(/\.+/g, '').split(" ");
-    return palabras.length < 4 && palabras.includes("true");
-  }
-
-}
+}  */
 
 
 const gpt = new controlador(web);
-const gptOld = new controladorOld(web);
+//const gptOld = new controladorOld(web);

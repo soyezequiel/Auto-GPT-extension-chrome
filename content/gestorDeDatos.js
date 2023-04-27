@@ -72,6 +72,12 @@ class BaseDeDatosTareaSolucion {
     constructor() {
         this.db = new MemoryDatabase();
     }
+    obtenerArrayDeStringTodasLasTareas() {
+        let todos = this.db.getAll();
+        const solucionesArray = todos.map(todo => todo.tarea);
+        return solucionesArray;
+
+    }
     guardarSolucion(tarea) {
         this.db.push(tarea);
     }
