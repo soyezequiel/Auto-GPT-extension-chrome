@@ -102,13 +102,7 @@ class BaseDeDatosTareaSolucion {
     }
 }
 
-class TareaSolucion {
-    constructor(profundidad, tarea, solucion) {
-        this.profundidad = profundidad;
-        this.tarea = tarea;
-        this.solucion = solucion;
-    }
-}
+
 
 const BdTarea = new BaseDeDatosTarea();
 const BdTareaSolucion = new BaseDeDatosTareaSolucion();

@@ -1,5 +1,11 @@
 
-var ProfundidadConfigurada = 1;
+
+
+try {
+  var interfaz = new InterfazDeUsuario();
+} catch (error) {
+  // Manejo del error aquí
+}
 
 //Maquina de estados finito
 async function principal(nombre, objetivo,retardo) {

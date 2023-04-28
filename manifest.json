@@ -34,10 +34,21 @@
           "matches": ["https://chat.openai.com/*"],
 
           "js": [
+            "./content/capaBase/tareasolucion.js",
+            "./content/capaBase/paginaWeb.js",
+            "./content/capaBase/interpretes.js",
+            "./content/capaBase/prompt.js",
+            "./content/capaBase/controlador.js",
+            
+            "./content/componentes/agenteCreacionDeTareas.js",
+            "./content/componentes/AgenteDeEjecucionDeTareas.js",
+            "./content/componentes/agentePriorizacionDeTareas.js",
+            "./content/componentes/ColaDeTareas.js",
+            
+            "./content/maquina.js",
             "./content/interfaz.js",
-            "./content/componentes.js",
-            "./content/gestorDeDatos.js",
-            "./content/gpt.js",
+            "./content/BaseDeDatos.js",
+            
             "./content/content-script.js"
           ]
         }

@@ -1,0 +1,55 @@
+class Maquina{
+    constructor(){   
+      this.agenteCreadorDeTareas=new AgenteCreacionDeTareas(); 
+      this.colaDeTareas= new ColaDeTareas();
+      this.agenteDeEjecucionDeTareas= new AgenteDeEjecucionDeTareas();
+      //  this.memoria =
+      this.continuar=false;
+      
+    }
+  
+    async empezar(nombre, objetivo){
+      this.reiniciar();
+      await this.agenteCreadorDeTareas.crearApartirDelObjetivo(nombre, objetivo);
+      this.continuar=true;
+      await this.recursivo();
+    }
+  
+    async recursivo(){
+        
+      if (this.continuar) {
+    
+        await this.agenteCreadorDeTareas.enviarTareas(this.colaDeTareas);
+      //  await colaDeTareas.enviarTareas(agenteDePriorizacionTareas);
+      //  await agenteDePriorizacionTareas.enviarTareasOrdenadas(colaDeTareas);     
+      let  todasLasSoluciones = await BdTareaSolucion.obtenerarrayDeStringTodasLasSoluciones();
+      console.log(todasLasSoluciones);
+        await this.colaDeTareas.moverTareaMasPrioritaria(this.agenteDeEjecucionDeTareas, todasLasSoluciones);
+        await this.agenteDeEjecucionDeTareas.enviarParTareaSolucion(this.agenteCreadorDeTareas);
+        await this.recursivo();
+    
+      }
+    }
+    reiniciar(){
+    this.agenteCreadorDeTareas.reiniciar();
+    this.colaDeTareas.reiniciar();
+    this.agenteDeEjecucionDeTareas.reiniciar();
+    }
+
+
+    getTareasTotales(){
+        return this.colaDeTareas.getTareasTotales();
+    }
+    getTareasEjecutadas(){
+        return this.agenteDeEjecucionDeTareas.getTareasEjecutadas();
+    }
+
+
+
+  
+  }
+  
+  
+var maquina=new Maquina();
+
+
