@@ -16,11 +16,21 @@ async function principal(nombre, objetivo,retardo) {
   interfaz.setObjetivo(objetivo);
   interfaz.setTiempoEntreMensaje(retardo);
   await interfaz.iniciarProceso(maquina);
-  await interfaz.imprimirEstadisticas(maquina, gptOld);
+  await interfaz.imprimirEstadisticas(maquina, gpt);
 
 }
-
-
+// Escuchar mensajes enviados desde popup.js
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+ if (message.action === "pausa") {
+    // Llamar a la función que deseas ejecutar
+ /*    if (interfaz.getContinua()){
+      interfaz.pausa();
+    }else{
+      this.interfaz.continua();
+    } */
+    interfaz.pausa();
+  }
+});
 
 
 //listener para escuchar el boton de iniciar proceso

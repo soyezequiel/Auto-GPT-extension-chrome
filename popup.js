@@ -1,17 +1,57 @@
+/*function mostrarTexto(texto, color, esUsuario) {
+
+  var chat = document.createElement("div"); // creamos un elemento <div> para el chat
+  chat.classList.add("chat"); // agregamos la clase "chat" al elemento <div>
+  if (esUsuario) {
+    chat.classList.add("sent"); // agregamos la clase "sent" si el mensaje es enviado por el usuario
+  } else {
+    chat.style.backgroundColor = color; // establecemos el color de fondo del elemento <div> con el valor del parámetro "color"
+  }
+  var contenido = document.createTextNode(texto); // creamos un nodo de texto con el contenido recibido
+  chat.appendChild(contenido); // agregamos el nodo de texto al elemento <div>
+  document.getElementById("respuesta").appendChild(chat); // agregamos el elemento <div> al elemento con id "respuesta"
+
+}
+*/
+
 function mostrarTexto(texto, color, esUsuario) {
-    var chat = document.createElement("div"); // creamos un elemento <div> para el chat
-    chat.classList.add("chat"); // agregamos la clase "chat" al elemento <div>
-    if (esUsuario) {
-      chat.classList.add("sent"); // agregamos la clase "sent" si el mensaje es enviado por el usuario
-    } else {
-      chat.style.backgroundColor = color; // establecemos el color de fondo del elemento <div> con el valor del parámetro "color"
-    }
-    var contenido = document.createTextNode(texto); // creamos un nodo de texto con el contenido recibido
-    chat.appendChild(contenido); // agregamos el nodo de texto al elemento <div>
-    document.getElementById("respuesta").appendChild(chat); // agregamos el elemento <div> al elemento con id "respuesta"
-  
+  var chat = document.createElement("div"); // creamos un elemento <div> para el chat
+  chat.classList.add("chat"); // agregamos la clase "chat" al elemento <div>
+  if (esUsuario) {
+    chat.classList.add("sent"); // agregamos la clase "sent" si el mensaje es enviado por el usuario
+  } else {
+    chat.style.backgroundColor = color; // establecemos el color de fondo del elemento <div> con el valor del parámetro "color"
+  }
+  var contenido = document.createTextNode(texto); // creamos un nodo de texto con el contenido recibido
+  chat.appendChild(contenido); // agregamos el nodo de texto al elemento <div>
+  document.getElementById("respuesta").appendChild(chat); // agregamos el elemento <div> al elemento con id "respuesta"
+
+  // Guardamos el estado del chat en el almacenamiento local
+  var chatsGuardados = JSON.parse(localStorage.getItem("chats")) || [];
+  chatsGuardados.push(chat.outerHTML);
+  localStorage.setItem("chats", JSON.stringify(chatsGuardados));
 }
 
+// Función para recuperar los chats guardados del almacenamiento local
+function recuperarChats() {
+  var chatsGuardados = JSON.parse(localStorage.getItem("chats")) || [];
+  for (var i = 0; i < chatsGuardados.length; i++) {
+    var chat = document.createElement("div");
+    chat.innerHTML = chatsGuardados[i];
+    document.getElementById("respuesta").appendChild(chat);
+  }
+}
+
+// Llamamos a la función recuperarChats() cuando se abre el popup
+recuperarChats();
+
+// Agregamos un controlador de eventos para el botón de limpiar
+document.getElementById("limpiar").addEventListener("click", function () {
+  // Borramos todos los chats guardados del almacenamiento local
+  localStorage.removeItem("chats");
+  // Borramos todos los chats del chat en pantalla
+  document.getElementById("respuesta").innerHTML = "";
+});
 
 
 
@@ -26,7 +66,18 @@ function descargarArchivo() {
   });
 }
 
+// Obtener referencia al botón de pausa
+const pausaBtn = document.getElementById("pausa-btn");
 
+// Agregar evento click al botón de pausa
+pausaBtn.addEventListener("click", function () {
+  // Obtener la ID de la pestaña activa
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    var activeTab = tabs[0];
+    // Enviar mensaje a content_script.js en la pestaña activa
+    chrome.tabs.sendMessage(activeTab.id, { action: "pausa" });
+  });
+});
 
 
 // Obtener el botón por su ID
@@ -60,13 +111,13 @@ form.addEventListener('submit', async (event) => {
 
 // listener para escribir la respuesta
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.texto && request.color) { // Verificamos si se recibió el texto y el color en el mensaje
-      console.log('Texto recibido desde content_script.js:', request.texto);
-      console.log('Color recibido desde content_script.js:', request.color);
-      mostrarTexto(request.texto, request.color, false); // Pasamos el texto y el color a la función mostrarTexto     
-      sendResponse({ confirmacion: 'Texto recibido correctamente' });
+  if (request.texto && request.color) { // Verificamos si se recibió el texto y el color en el mensaje
+    console.log('Texto recibido desde content_script.js:', request.texto);
+    console.log('Color recibido desde content_script.js:', request.color);
+    mostrarTexto(request.texto, request.color, false); // Pasamos el texto y el color a la función mostrarTexto     
+    sendResponse({ confirmacion: 'Texto recibido correctamente' });
 
-    }
+  }
 });
 
 const btnOpcionesAvanzadas = document.getElementById('btn-opciones-avanzadas');

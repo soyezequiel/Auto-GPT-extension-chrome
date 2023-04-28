@@ -4,25 +4,56 @@ class InterfazDeUsuario {
     this.objetivo = null;
     this.proceso = [];
     this.tiempoEntreMensaje = 3000;
+    this.maquina=null;
   }
   async iniciarProceso(maquina) {
+    this.maquina=maquina;
     BdTarea.borrarBaseDeDatosDeTareas();
     BdTareaSolucion.borrarBaseDeDatosDeSoluciones();
     await maquina.empezar(this.nombre, this.objetivo);
   }
-  getProceso(){
+  pausa(){
+    this.maquina.pausa();
+
+  console.log("boton de pausa precionado continua? " + this.maquina.continuar);
+}
+  getContinua(){
+    this.maquina.getContinua();
+  }
+  continua(){
+    console.log("boton de continuar precionado continua? " + this.maquina.continuar);
+    this.maquina.continua();
+  }
+ async  getProceso(){
     return this.proceso.map(actual => actual.texto);
   }
-//falta completar
+/*
   imprimirProceso(){
     for (let i= 0 ; i<this.proceso.length ; i++){
       let actual= this.proceso[i];
-      _imprimir(actual.texto, actual.color);
+      
+      this._imprimirSinPushProceso(actual.texto, actual.color);
+      console.log(i);
     }
+    console.log(this.proceso.length +"dawdawdawdwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwawdawddawdawdawdwada");
 
 
     
   }
+  _imprimirSinPushProceso(texto, color) {   //antes llamado enviarTexto
+
+
+    // Tu código que produce el error
+    if (  chrome.runtime && chrome.runtime.sendMessage) {
+      var mensaje = {
+        texto: texto,
+        color: color // Agregamos el color al objeto de mensaje
+      };
+
+      chrome.runtime.sendMessage(mensaje, function (response) { });
+    }
+
+  }*/
   _imprimir(texto, color) {   //antes llamado enviarTexto
 
     this.proceso.push({texto: texto , color: color});
@@ -56,7 +87,8 @@ class InterfazDeUsuario {
     this._imprimir("Tiempo de sesión:  " + await controlador.tiempo() + " minutos  ", "white");
     this._imprimir("Tareas creadas:  " + await maquina.getTareasTotales(), "white");
     this._imprimir("Tareas ejecutadas:  " + await maquina.getTareasEjecutadas(), "white");
-    console.log(proceso.join(" \n\n"));
+    console.log( (await this.getProceso()).join(" \n\n"));
+   
   }
   imprimirNoHayTareas() {
     console.log("No hay mas tareas, felicitaciones");
@@ -71,9 +103,9 @@ class InterfazDeUsuario {
   imprimirPriorizando() {
     _imprimir("Ordenando", "white");
   }
-  descargarProceso() {
+ async descargarProceso() {
 
-    let texto = this.getProceso.join(" \n\n ");
+    let texto = (await this.getProceso()).join(" \n\n ");
     // Creamos un objeto de texto con la información que queremos descargar
 
 

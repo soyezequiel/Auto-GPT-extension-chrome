@@ -14,17 +14,26 @@ class Maquina{
       this.continuar=true;
       await this.recursivo();
     }
+    pausa(){
+    this.continuar=false;
+    }
+    getContinua(){
+      return this.continuar;
+    }
+    continua(){
+      this.continuar=true;
+      this.recursivo();
+    }
   
     async recursivo(){
         
       if (this.continuar) {
-    
-        await this.agenteCreadorDeTareas.enviarTareas(this.colaDeTareas);
+        await this.agenteCreadorDeTareas.enviarTareas(this.colaDeTareas,this);
       //  await colaDeTareas.enviarTareas(agenteDePriorizacionTareas);
       //  await agenteDePriorizacionTareas.enviarTareasOrdenadas(colaDeTareas);     
       let  todasLasSoluciones = await BdTareaSolucion.obtenerarrayDeStringTodasLasSoluciones();
       console.log(todasLasSoluciones);
-        await this.colaDeTareas.moverTareaMasPrioritaria(this.agenteDeEjecucionDeTareas, todasLasSoluciones);
+        await this.colaDeTareas.moverTareaMasPrioritaria(this.agenteDeEjecucionDeTareas, todasLasSoluciones,this);
         await this.agenteDeEjecucionDeTareas.enviarParTareaSolucion(this.agenteCreadorDeTareas);
         await this.recursivo();
     
