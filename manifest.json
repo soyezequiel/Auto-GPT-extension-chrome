@@ -44,10 +44,11 @@
             "./content/componentes/AgenteDeEjecucionDeTareas.js",
             "./content/componentes/agentePriorizacionDeTareas.js",
             "./content/componentes/ColaDeTareas.js",
+            "./content/componentes/BaseDeDatos.js",
             
             "./content/maquina.js",
             "./content/interfaz.js",
-            "./content/BaseDeDatos.js",
+            
             
             "./content/content-script.js"
           ]

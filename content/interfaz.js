@@ -10,11 +10,22 @@ class InterfazDeUsuario {
     BdTareaSolucion.borrarBaseDeDatosDeSoluciones();
     await maquina.empezar(this.nombre, this.objetivo);
   }
+  getProceso(){
+    return this.proceso.map(actual => actual.texto);
+  }
+//falta completar
+  imprimirProceso(){
+    for (let i= 0 ; i<this.proceso.length ; i++){
+      let actual= this.proceso[i];
+      _imprimir(actual.texto, actual.color);
+    }
 
 
+    
+  }
   _imprimir(texto, color) {   //antes llamado enviarTexto
 
-    this.proceso.push(texto);
+    this.proceso.push({texto: texto , color: color});
 
     // Tu código que produce el error
     if (  chrome.runtime && chrome.runtime.sendMessage) {
@@ -62,7 +73,7 @@ class InterfazDeUsuario {
   }
   descargarProceso() {
 
-    let texto = this.proceso.join(" \n\n ");
+    let texto = this.getProceso.join(" \n\n ");
     // Creamos un objeto de texto con la información que queremos descargar
 
 
