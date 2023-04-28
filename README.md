@@ -50,4 +50,6 @@ Para que la extensión funcione, tiene que tener en primer plano la pagina de ch
 
 
 
+![image](https://user-images.githubusercontent.com/32722140/235150228-bb836954-220f-4fe3-aa00-cc5e0cab2ddf.png)
+![image](https://user-images.githubusercontent.com/32722140/235150292-626327d9-a60e-4d16-b7d7-f3aefd53002f.png)
 
