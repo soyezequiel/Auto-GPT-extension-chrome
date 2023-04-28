@@ -23,11 +23,13 @@ class AgenteCreacionDeTareas {
         return arreglo;
     }
 
-    async _enviarPromptCrearTareas(parTareaSolucion,contexto,gpt,prompt,tareas){
-        promptDeCrearTarea.asignarVariable("objetivo",tareas[0]);
-        promptDeCrearTarea.asignarVariable("tareas",tareas);
-        promptDeCrearTarea.asignarVariable("ultimaTarea",parTareaSolucion.tarea);
-        promptDeCrearTarea.asignarVariable("resultado",parTareaSolucion.solucion);
+    async _enviarPromptCrearTareas(parTareaSolucion,contexto,gpt,prompt,tareas,soluciones){
+        prompt.asignarVariable("objetivo",tareas[0]);
+        prompt.asignarVariable("tareas",tareas);
+        prompt.asignarVariable("ultimaTarea",parTareaSolucion.tarea);
+        prompt.asignarVariable("solucion",parTareaSolucion.solucion);
+        prompt.asignarVariable("soluciones",soluciones);
+      
 
 
         var arreglo = await gpt.enviarPrompt(prompt,"creacion");
@@ -35,8 +37,9 @@ class AgenteCreacionDeTareas {
     }
     async crearTareasApartirDeSoluciones(parTareaSolucion, contexto) { 
         this.reiniciar();        
-        const tareas= BdTareaSolucion.obtenerArrayDeStringTodasLasTareas();
-        this.arregloDePar= await this._enviarPromptCrearTareas(parTareaSolucion,contexto,gpt,promptDeCrearTarea,tareas);  
+        const tareas= await BdTareaSolucion.obtenerArrayDeStringTodasLasTareas();
+        const soluciones= await BdTareaSolucion.obtenerarrayDeStringTodasLasSoluciones();
+        this.arregloDePar= await this._enviarPromptCrearTareas(parTareaSolucion,contexto,gpt,promptDeCrearTarea,tareas,soluciones);  
         await BdTareaSolucion.guardarEnMemoria(parTareaSolucion);
         this.arregloDePar; 
     }

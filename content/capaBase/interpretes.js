@@ -29,34 +29,7 @@ class InterpreteJson {
     }
     
   
-  
-  /*
-    _obtenerCadenasEntreCorchetes(texto) {
-      const corchetesAbiertos = [];
-      const cadenas = [];
-      let cadenaActual = "";
-      for (let i = 0; i < texto.length; i++) {
-        if (texto[i] === "[") {
-          corchetesAbiertos.push(i);
-        } else if (texto[i] === "]") {
-          if (corchetesAbiertos.length > 0) {
-            const indiceCorcheteAbierto = corchetesAbiertos.pop();
-            cadenaActual = texto.substring(indiceCorcheteAbierto, i + 1);
-            cadenas.push(cadenaActual);
-          }
-        }
-      }
-  
-      if (corchetesAbiertos.length > 0) {
-        console.error("Error: Hay corchetes abiertos que no se cerraron.");
-      } else if (cadenas.length === 0) {
-        console.error("No se encontraron cadenas entre corchetes.");
-        return "error";
-      } else {
-        return cadenas;
-      }
-    }
-  */
+
   }
   
   class InterpreteOld {
