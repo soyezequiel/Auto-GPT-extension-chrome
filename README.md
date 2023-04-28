@@ -5,7 +5,8 @@ Para su correcto funcionamiento debes de tener la pagina de chatGPT en primer pl
 
 ![image](https://user-images.githubusercontent.com/32722140/232927241-8cf866a5-8fa9-4b18-a658-d6fb3d9ff045.png)
 
-![image](https://user-images.githubusercontent.com/32722140/232927829-e558b9d5-c730-4781-9d7f-7f92fde73300.png)
+![image](https://user-images.githubusercontent.com/32722140/235149798-e3c612c5-e8c9-4b9c-851b-4af6527b5db8.png)
+
 
 Actualmente está en BETA, por lo que tiene una tasa alta de fallos.
 
