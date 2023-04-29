@@ -1,6 +1,3 @@
-
-
-
 try {
   var interfaz = new InterfazDeUsuario();
 } catch (error) {
@@ -11,6 +8,7 @@ try {
 async function principal(nombre, objetivo,retardo) {
 
   // aqui se enviara al agente de creacion de tareas el nombre y el objetivo para
+
   interfaz.imprimirInicio(nombre, objetivo)
   interfaz.setNombre(nombre);
   interfaz.setObjetivo(objetivo);
@@ -22,12 +20,6 @@ async function principal(nombre, objetivo,retardo) {
 // Escuchar mensajes enviados desde popup.js
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
  if (message.action === "pausa") {
-    // Llamar a la función que deseas ejecutar
- /*    if (interfaz.getContinua()){
-      interfaz.pausa();
-    }else{
-      this.interfaz.continua();
-    } */
     interfaz.pausa();
   }
 });

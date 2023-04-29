@@ -27,14 +27,15 @@ class Maquina{
   
     async recursivo(){
         
-      if (this.continuar) {
+     
         await this.agenteCreadorDeTareas.enviarTareas(this.colaDeTareas,this);
       //  await colaDeTareas.enviarTareas(agenteDePriorizacionTareas);
       //  await agenteDePriorizacionTareas.enviarTareasOrdenadas(colaDeTareas);     
       let  todasLasSoluciones = await BdTareaSolucion.obtenerarrayDeStringTodasLasSoluciones();
       console.log(todasLasSoluciones);
+      if (this.continuar) {
         await this.colaDeTareas.moverTareaMasPrioritaria(this.agenteDeEjecucionDeTareas, todasLasSoluciones,this);
-        await this.agenteDeEjecucionDeTareas.enviarParTareaSolucion(this.agenteCreadorDeTareas);
+        if (this.continuar) {        await this.agenteDeEjecucionDeTareas.enviarParTareaSolucion(this.agenteCreadorDeTareas); } 
         await this.recursivo();
     
       }

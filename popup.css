@@ -103,3 +103,6 @@ body {
   #opciones-avanzadas button:focus + #campos-avanzados {
     display: block;
   }
+  .oculto {
+    display: none;
+  }

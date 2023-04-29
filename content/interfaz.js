@@ -8,6 +8,7 @@ class InterfazDeUsuario {
   }
   async iniciarProceso(maquina) {
     this.maquina=maquina;
+    this.maquina.reiniciar();
     BdTarea.borrarBaseDeDatosDeTareas();
     BdTareaSolucion.borrarBaseDeDatosDeSoluciones();
     await maquina.empezar(this.nombre, this.objetivo);
@@ -16,6 +17,10 @@ class InterfazDeUsuario {
     this.maquina.pausa();
 
   console.log("boton de pausa precionado continua? " + this.maquina.continuar);
+}
+reiniciar(){
+  this.maquina.reiniciar();
+  this.proceso=[];
 }
   getContinua(){
     this.maquina.getContinua();

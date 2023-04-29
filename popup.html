@@ -33,7 +33,7 @@
 
   <h1>Auto GPT BETA</h1>
 
-  <form id="formulario">
+  <form id="formulario" >
     <label for="nombre">Nombre:</label>
     <input type="text" id="nombre" name="nombre" required>
     <label for="mensaje">Objetivo:</label>
@@ -52,10 +52,10 @@
     <button id="enviar">Iniciar proceso</button>
 
   </form>
-  <button id="pausa-btn">Finalizar</button>
+  <button id="pausa-btn" class="oculto">Finalizar</button>
   <button id="limpiar">Limpiar</button>
 
-  <div id="respuesta" style="height: 400px; overflow-y: scroll;"></div>
+  <div id="respuesta"  style="height: 400px; overflow-y: scroll;"></div>
 
   <button id="txt">Descargar archivo</button>
   <script type="module" src="./content/content-script.js"></script>
